@@ -2,8 +2,19 @@ import sys
 import os
 import datetime
 
-Prog = os.environ['SYCLIST_PROG']
-working_dir = os.environ['CLUSTER_DIR']
+try:
+    Prog = os.environ['SYCLIST_PROG']
+    working_dir = os.environ['CLUSTER_DIR']
+except KeyError:
+    Prog = raw_input('You did not yet set the needed environment variables.\nEnter the path to the SYCLIST program(full path): ')
+    working_dir = raw_input('Enter the path to the clusters computation folder: ')
+    os.environ['SYCLIST_PROG'] = Prog
+    os.environ['CLUSTER_DIR'] = working_dir
+    bp = open(os.path.expanduser('~/.bash_profile'),'a')
+    bp.write('####################\n# SYCLIST variables \n####################\n')
+    bp.write('SYCLIST_PROG="'+Prog+'"\nexport SYCLIST_PROG\n')
+    bp.write('CLUSTER_DIR="'+working_dir+'"\nexport CLUSTER_DIR\n')
+    bp.close()
 
 start_dir = os.getcwd()
 if start_dir != working_dir:
