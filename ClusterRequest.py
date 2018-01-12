@@ -1,11 +1,9 @@
-#! /Users/ekstrom/Library/Enthought/Canopy/edm/envs/User/bin/python
-#=======================================================================
 import sys
 import os
 import datetime
 
-Prog = '/Users/ekstrom/OBS/Programs/SYCLIST/Release/SYCLIST.paf'
-working_dir = '/Users/ekstrom/OBS/Groupe/SYCLIST_Clusters'
+Prog = os.environ['SYCLIST_PROG']
+working_dir = os.environ['CLUSTER_DIR']
 
 start_dir = os.getcwd()
 if start_dir != working_dir:
