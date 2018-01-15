@@ -65,7 +65,7 @@ for i in range(minidx):
     new_alpro6[i] = alpro6[minidx]
     new_ocen[i] = omcen[minidx]
     old_surf = np.interp(ooc[i],OOc_interp,Surf_interp)
-    new_teff[i] = np.log10(10.**teff[i] * old_surf / new_surf)
+    new_teff[i] = teff[i] + (np.log10(old_surf) - np.log10(new_surf))/4.
     new_rpol[i] = np.sqrt(10.**lum[i]*apc.CGS.Lsol/(apc.CGS.sigma*10.**(4.*new_teff[i])*new_surf))
     new_ocrit[i] = np.sqrt(apc.CGS.G*mass[i]*apc.CGS.Msol/(1.5*new_rpol[i])**3.)
     new_osurf[i] = new_ooc[i]*new_ocrit[i]
