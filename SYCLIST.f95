@@ -67,10 +67,10 @@ contains
 
     type(type_DataStructure),intent(out)::Structure
 
-    integer::LineNumber,error,i,j
+    integer::LineNumber,error=0,i,j
     integer,parameter::ReadUnit=30,Line_to_Remove = 3
 
-    open(unit=ReadUnit,file=FileNameIn,iostat=error,status='old')
+    open(unit=ReadUnit,file=trim(FileNameIn),iostat=error,status='old')
     if (error /= 0) then
       write(*,*) 'Error opening file ',trim(FileNameIn),'. Aborting...'
       stop
@@ -232,7 +232,7 @@ module VariousParameters
                                                                 ! in each coordinate (ie, Z,m and omega)
                                                                 ! the data structure.
   character(9),public:: grid = "BeGrids"
-  character(256),public::Std_Path
+  character(256),public::Std_Path,Std_Path_tables
                                                                 ! directory of following files:
   character(*),parameter,public::HuangFile = 'HuangDist.dat', & ! File of the Huang distribution
     HGFile = 'HGDist.dat', &       ! File of the Huang & Gies distribution
@@ -4067,12 +4067,12 @@ contains
             endif
           enddo
           grid = Temp_Var_char
-          if (grid == "Grids2012" .and. m_IMF_inf < m_IMF_inf_Grids2012) then
-            write(*,*) "Minimal IMF mass too low for this grid, reset to ", m_IMF_inf_Grids2012," !"
+          if (grid == "Grids2012" .and. m_IMF_inf /= m_IMF_inf_Grids2012) then
+            write(*,*) "Minimal IMF mass reset to ", m_IMF_inf_Grids2012," !"
             m_IMF_inf = m_IMF_inf_Grids2012
           endif
-          if (grid == "Grids2012" .and. m_IMF_sup > m_IMF_sup_Grids2012) then
-            write(*,*) "Maximal IMF mass too high for this grid, reset to ", m_IMF_sup_Grids2012," !"
+          if (grid == "Grids2012" .and. m_IMF_sup /= m_IMF_sup_Grids2012) then
+            write(*,*) "Maximal IMF mass reset to ", m_IMF_sup_Grids2012," !"
              m_IMF_sup = m_IMF_sup_Grids2012
           endif
           if ((grid == "BeGrids" .or.grid == "FastBe") .and. m_IMF_inf < m_IMF_inf_BeGrids) then
@@ -4449,20 +4449,20 @@ contains
     ! Search tables file, and treat the data in order to store them in RAM.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use VariousParameters, only: Std_Path,ListFileGrids2012,ListFileBeGrids,ListFileFastBe,Z_Number,All_Data_Array, &
-      Z_List,mass_List,omega_list,mass_Number_array,omega_Number_array,grid
+    use VariousParameters, only: Std_Path,Std_Path_tables,ListFileGrids2012,ListFileBeGrids,ListFileFastBe, &
+      Z_Number,All_Data_Array,Z_List,mass_List,omega_list,mass_Number_array,omega_Number_array,grid
     use DataStructure, only: FillData,verbose
 
     implicit none
 
-    integer, parameter::ReadUnit=20,Z_Length=2,mass_Length=4,omega_Length=2
+    integer, parameter::ReadUnit=20,Z_Length=2,mass_Length=6,omega_Length=2
     integer::error,FileNumber,i,j,k,Begin_in_String
     integer::omega_ini_int,M_ini_int,Z_ini_int
     integer::mass_Number,omega_Number
 
     real(kind=8)::omega_initial,M_initial,Z_initial
 
-    character(512)::FullPath
+    character(512)::FullPath,table_name
     character(Z_Length)::Z_String,Z_String_prev
     character(mass_Length)::mass_String,mass_String_prev
     character(omega_Length)::omega_String,omega_String_prev
@@ -4492,8 +4492,8 @@ contains
         write(*,*) 'Be careful: in this file models must be sorted, first by increasing metallicity,'
         write(*,*) 'then by increasing mass and finally by increasing velocity in order for this'
         write(*,*) 'program to work ! The name of the models must mandatorily be under'
-        write(*,*) 'the form MXXXZYYVAA, with XXX the mass, YY the metallicity and'
-        write(*,*) 'AA the initial velocity (eg. M1p4Z14V00 or M060Z02V40)'
+        write(*,*) 'the form MXXXpXXZYYVAA, with XXXpXX the mass, YY the metallicity and'
+        write(*,*) 'AA the initial velocity (eg. M001p40Z14V00 or M060p00Z02V40)'
       endif
       write(*,*)
     endif
@@ -4640,21 +4640,16 @@ contains
           endif
           read(omega_String,'(i2)') omega_ini_int
           omega_initial = dble(omega_ini_int)/100.d0
-          if (mass_String(2:2) /= 'p') then
-            read(mass_String,'(i3)') M_ini_int
-            M_initial = dble(M_ini_int)
-          else
-            read(mass_String(1:1),'(i1)') M_ini_int
-            M_initial = dble(M_ini_int)
-            if (mass_String(4:4) == 'Z') then
-              read(mass_String(3:3),'(i1)') M_ini_int
-              M_initial = M_initial + 0.1d0*dble(M_ini_int)
-            else
-              read(mass_String(3:4),'(i2)') M_ini_int
-              M_initial = M_initial + 0.01d0*dble(M_ini_int)
-            endif
+          read(mass_String(1:3),'(i3)') M_ini_int
+          M_initial = dble(M_ini_int)
+          read(mass_String(5:6),'(i2)') M_ini_int
+          M_initial = M_initial + 0.01d0*dble(M_ini_int)
+          table_name=trim(Std_Path_tables)//trim(FullPath)
+          if (verbose) then
+            write(*,'(a,f5.3,1x,f6.2,1x,f4.2)') 'Z,M,OOc: ',Z_initial,M_initial,omega_initial
+            write(*,*) 'File ',trim(table_name)
           endif
-          call FillData(Z_initial,M_initial,omega_initial,FullPath,All_Data_Array(i,j,k))
+          call FillData(Z_initial,M_initial,omega_initial,table_name,All_Data_Array(i,j,k))
         enddo
       enddo
     enddo
@@ -5550,7 +5545,7 @@ contains
     ! Search a local config file. If it exists, read the values
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use VariousParameters, only: Std_Path
+    use VariousParameters, only: Std_Path,Std_Path_tables
 
     implicit none
 
@@ -5574,6 +5569,7 @@ contains
       read(Unit_Config_Path,'(a)') Std_Path
     endif
     close(Unit_Config_Path)
+    Std_Path_tables = trim(Std_Path)//'/tables/'
     Std_Path = trim(Std_Path)//'/inputs/'
 
     open(Unit_Config_File,file=Config_FileName,iostat=ierror,status='old')
@@ -5696,7 +5692,7 @@ contains
     endif
 
     write(Unit_Config_File,'(a)') '*******************************'
-    write(Unit_Config_File,'(a)') 'Configuration file for PopStarII'
+    write(Unit_Config_File,'(a)') 'Configuration file for SYCLIST'
     write(Unit_Config_File,'(a)') 'Do not edit unless knowing what you are doing !'
     write(Unit_Config_File,'(a)') '*******************************'
 
