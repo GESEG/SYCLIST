@@ -1245,7 +1245,8 @@ module ReadData
     n_CorrTable_row = n_Angle_Corr*(size(TableCorrection_Shape,1)+1)
                                                                 ! Number of rows and columns in the limb
                                                                 ! darkening tables.
-
+  integer,public,save:: n_ext,n_angle_ext
+  real(kind=8),dimension(:),allocatable,public,save:: omega_ext,dist_ext,angle_ext,angle_dist_ext
 
   real(kind=8),dimension(n_Huang),public,save:: omega_Huang, &  ! omega read in Huang file
     dist_Huang_1, & ! small mass distribution
@@ -1272,6 +1273,7 @@ module ReadData
 
   public:: init_Huang
   public:: init_HG
+  public:: init_external
   public:: init_Correction
   public:: init_VcritOmega
   public:: init_SurfaceOmega
@@ -1337,7 +1339,101 @@ contains
 
   end subroutine init_HG
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine init_external
+  ! Reads an external distribution data file.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    implicit none
+
+    integer:: i,error=0
+    character(512):: ext_file=''
+
+    write(*,*) 'Enter the name of the external file for OOc distribution'
+    write(*,*) 'with path: '
+    write(*,*) 'NB: must have the format (f8.6,1x,f8.6)'
+    read(5,*) ext_file
+    write(*,*) 'reading from file',trim(ext_file)
+
+    open(unit=11,file=trim(ext_file),iostat=error,status='old')
+    if (error /= 0) then
+      write(*,*) 'Problem reading file ',trim(ext_file), '!'
+    endif
+    error = 0
+    n_ext = 0
+    do
+      read(11,*,iostat=error)
+      if (error /= 0) then
+        exit
+      endif
+      n_ext = n_ext+1
+    enddo
+    rewind(11)
+
+    allocate(omega_ext(n_ext))
+    allocate(dist_ext(n_ext))
+
+    error = 0
+    do i=1,n_ext
+      read(11,'(f8.6,1x,f8.6)',iostat=error)omega_ext(i),dist_ext(i)
+      if (error /= 0) then
+        exit
+      endif
+    enddo
+
+    close(11)
+
+    return
+
+  end subroutine init_external
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine init_angle_external
+  ! Reads an external distribution data file.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    implicit none
+
+    integer:: i,error
+    character(512):: ext_file
+
+    write(*,*) 'Enter the name of the external file for angle distribution'
+    write(*,*) 'with path: '
+    write(*,*) 'NB: must have the format (1x,f4.1,2x,f5.3)'
+    read(5,*) ext_file
+
+    open(unit=11,file=trim(ext_file),iostat=error,status='old')
+    if (error /= 0) then
+      write(*,*) 'Problem reading file ',trim(ext_file), '!'
+    endif
+    error = 0
+    n_angle_ext = 0
+    do
+      read(11,*,iostat=error)
+      if (error /= 0) then
+        exit
+      endif
+      n_angle_ext = n_angle_ext+1
+    enddo
+    rewind(11)
+
+    allocate(angle_ext(n_angle_ext))
+    allocate(angle_dist_ext(n_angle_ext))
+
+    error = 0
+    do i=1,n_angle_ext
+      read(11,'(1x,f4.1,2x,f5.3)',iostat=error)angle_ext(i),angle_dist_ext(i)
+      if (error /= 0) then
+        exit
+      endif
+    enddo
+
+    close(11)
+
+    return
+
+  end subroutine init_angle_external
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine init_Correction
     ! Reads the correction files for luminosity and effective temperature (gravity darkening).
@@ -3646,7 +3742,7 @@ contains
 
     use VariousParameters, only: om_ivdist
     use ReadData, only: B_mass_inf,B_mass_sup,Huang_m_limit,n_Huang,omega_Huang,dist_Huang_1,dist_Huang_2, &
-      dist_Huang_3,n_HG,omega_HG,dist_HG
+      dist_Huang_3,n_HG,omega_HG,dist_HG,n_ext,omega_ext,dist_ext
     use interpolmod, only: Linear_Interp
 
     implicit none
@@ -3694,8 +3790,10 @@ contains
         omega = Linear_Interp(Random_Draw,n_HG,dist_HG,omega_HG)
       case (3)
         omega = om_ivdist
+      case (4)
+        omega = Linear_Interp(Random_Draw,n_ext,dist_ext,omega_ext)
       case default
-        write(*,*) 'Unexpexted situation...'
+        write(*,*) 'Unexpected omega determination...'
         stop
     end select
 
@@ -3794,11 +3892,13 @@ contains
 
     use VariousParameters, only:iangle,Fixed_AoV
     use constant, only:pi
+    use interpolmod, only: Linear_Interp
+    use ReadData,only: n_angle_ext,angle_ext,angle_dist_ext
 
     implicit none
 
     real(kind=8), intent(out):: angle
-    real(kind=8):: Random_Draw
+    real(kind=8):: Random_Draw,AoV
 
     call random_number(Random_Draw)
 
@@ -3813,8 +3913,12 @@ contains
       case (3)
         ! Case of a Dirac distribution.
         angle = Fixed_AoV
+      case (4)
+        ! Case of external file for angle distribution
+        AoV = Linear_Interp(Random_Draw,n_angle_ext,angle_dist_ext,angle_ext)
+        angle = pi/2.d0-AoV*(pi/180.d0)
       case default
-        write(*,*) 'Unexpexted situation...'
+        write(*,*) 'Unexpected angle distribution...'
         stop
     end select
 
@@ -3887,6 +3991,8 @@ contains
         write(*,*) ' (distribution of Huang-Gies 2006)'
       case(3)
         write(*,'(a,f4.2)') '  delta distribution at omega=',om_ivdist
+      case(4)
+        write(*,*) ' (distribution read from external file)'
       case default
         write(*,*) 'Bad ivdist value, aborting...'
         stop
@@ -3902,6 +4008,8 @@ contains
         write(*,*) ' (vsini distribution)'
       case(3)
         write(*,'(a,f5.2)') '  (delta distribution at angle=)',Fixed_AoV_latitude
+      case(4)
+        write(*,*) ' (distribution read from external file)'
       case default
         write(*,*) 'Bad iangle value, aborting...'
         stop
@@ -4089,7 +4197,7 @@ contains
         case(3)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1)
-            write(*,*) 'What do you want for the velocity distribution?'
+            write(*,*) 'What do you want for the IMF?'
             write(*,*) '1. Salpeter IMF'
             read(5,*) Temp_Var_Int
             if (Temp_Var_Int /= 1) then
@@ -4132,16 +4240,17 @@ contains
         case(7)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. &
-            Temp_Var_Int /= 3)
+            Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
             write(*,*) 'What do you want for the velocity distribution?'
             write(*,*) '0. uniform'
             write(*,*) '1. Huang10'
             write(*,*) '2. Huang-Gies06'
             write(*,*) '3. Dirac (see parameter 7)'
+            write(*,*) '4. external file'
             read(*,*) Temp_Var_Int
             if (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /=2 .and. &
-              Temp_Var_Int /= 3) then
-              write(*,*) 'Please enter 0,1,2 or 3.'
+              Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4) then
+              write(*,*) 'Please enter 0,1,2,3, or 4.'
             endif
           enddo
           ivdist=Temp_Var_Int
@@ -4158,16 +4267,17 @@ contains
         case(9)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /=2 .and. &
-            Temp_Var_Int /= 3)
+            Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
             write(*,*) 'What do you want for the angle of view distribution ?'
             write(*,*) '0. not take in account'
             write(*,*) '1. uniform'
             write(*,*) '2. sini'
             write(*,*) '3. Dirac (see parameter 7)'
+            write(*,*) '4. external file'
             read(*,*) Temp_Var_Int
             if(Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. &
-              Temp_Var_Int /= 3) then
-              write(*,*) 'Please enter 0,1,2 or 3.'
+              Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4) then
+              write(*,*) 'Please enter 0,1,2,3, or 4.'
             endif
           enddo
           iangle=Temp_Var_Int
@@ -5735,10 +5845,11 @@ program PopStarII
   ! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
   use DataStructure, only: verbose
-  use VariousParameters, only:Comp_Mode,init_AoV
+  use VariousParameters, only:Comp_Mode,init_AoV,ivdist,iangle
 
   use random, only:init_random
-  use ReadData, only:init_Huang,init_HG,init_Correction,init_VcritOmega,init_SurfaceOmega, init_Correct_fact
+  use ReadData, only:init_Huang,init_HG,init_external,init_Correction,init_VcritOmega,init_SurfaceOmega, &
+                     init_Correct_fact,init_angle_external
   use InOut, only:Intro,AskChange,IsochroneMode
   use InterpolationLoop, only:MainLoop
   use Configuration_File, only:Config,Write_Config
@@ -5776,7 +5887,13 @@ program PopStarII
   ! Introduction and choice of parameters
   call Intro
   call AskChange
+  if (ivdist == 4) then
+    call init_external
+  endif
   call init_AoV
+  if (iangle == 4) then
+    call init_angle_external
+  endif
 
   if (Comp_Mode == 2) then
     call IsochroneMode
