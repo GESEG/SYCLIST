@@ -94,6 +94,20 @@ request_date = datetime.datetime.strptime(request_date[0:19], "%Y-%m-%d %H:%M:%S
 
 ClusterFile.close()
 
+if rotation_distrib == 'ext' or angle_distrib == 4:
+    with open('ClusterRequest.txt','a') as ClusterFile:
+        ClusterFile.write('\n\n')
+        if rotation_distrib == 'ext':
+            OOc_file = raw_input('Enter the OOc distribution file (with path):\n')
+            ClusterFile.write('OOc distrib. file: '+OOc_file+'\n')
+            if OOc_file[0] not in ["'",'"']:
+                OOc_file = "'"+OOc_file+"'"
+        if angle_distrib == 'ext':
+            angle_file = raw_input('Enter the angle distribution file (with path):\n')
+            ClusterFile.write('angle distrib. file: '+angle_file+'\n')
+            if angle_file[0] not in ["'",'"']:
+                angle_file = "'"+angle_file+"'"
+
 date_suffix = request_date.strftime('%y%m%d_%H%M%S')
 if not os.path.exists(user_name):
     os.makedirs(user_name)
@@ -108,8 +122,8 @@ else:
     Mmin = 0.8
     Mmax = 120.
 
-rotation_distrib = {'flat':'0','H10':'1','HG06':'2','Dirac':'3'}.get(rotation_distrib)
-angle_distrib = {'None':'0','Vsini':'2','Dirac':'3'}.get(angle_distrib)
+rotation_distrib = {'flat':'0','H10':'1','HG06':'2','Dirac':'3','ext':'4'}.get(rotation_distrib)
+angle_distrib = {'None':'0','Vsini':'2','Dirac':'3','ext':'4'}.get(angle_distrib)
 grav_dark = {'vZ24':'1','ELR11':'2'}.get(grav_dark)
 noise = {'False':'0','True':'1'}.get(noise)
 limb_dark = {'False':'0','True':'1'}.get(limb_dark)
@@ -117,7 +131,7 @@ colours = {'old':'1','WL11':'2'}.get(colours)
 
 ConfigFile = open('.Config_SYCLIST','w')
 ConfigFile.write('*******************************\n')
-ConfigFile.write('Configuration file for PopStarII\n')
+ConfigFile.write('Configuration file for SYCLIST\n')
 ConfigFile.write('Do not edit unless knowing what you are doing !\n')
 ConfigFile.write('*******************************\n')
 ConfigFile.write('Grid:   '+grids+'\n')
@@ -143,7 +157,12 @@ ConfigFile.write('Limb Darkening:   %4s'%limb_dark+'\n')
 ConfigFile.close()
 
 TempFile = open('TempFile.txt','w')
-TempFile.write('n\n1\n'+str(age)+'\ny\n')
+TempFile.write('n\n1\n'+str(age)+'\n')
+if rotation_distrib == '4':
+    TempFile.write(OOc_file+'\n')
+if angle_distrib == '4':
+    TempFile.write(angle_file+'\n')
+TempFile.write('y\n')
 os.system('more TempFile.txt')
 TempFile.close()
 
