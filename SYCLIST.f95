@@ -4828,16 +4828,16 @@ contains
 
     integer::error,i,j
 
-    character(*),parameter:: Output_Format= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,18(2x,f8.4),2x,1pe9.3,2x,0pf6.4,2x,f6.3,2x,&
+    character(*),parameter:: Output_Format= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,17(2x,f8.4),2x,1pe9.3,2x,0pf6.4,2x,f6.3,2x,&
                                          &e9.3,3(2x,f8.2),2x,f6.4,1x,f7.3,1x,f7.3,2x,f6.4,11(2x,e9.3))'    , &
-      Output_Format_Cluster= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,23(2x,f8.4),2x,&
+      Output_Format_Cluster= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
                                          &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
                                          &f7.3,2x,f6.4,11(2x,e9.3))'    , &
       Output_Format_Single = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
                                          &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),&
                                          &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,16(2x,f7.3))'    , &
       Header = ' M_ini      Z_ini  OmOc_ini  M       logL     logTe_c  logTe_nc      MBol        &
-                         &MV       U-B       B-V     B2-V1       V-K       V-R       V-I       J-K&
+                         &MV       U-B       B-V       V-K       V-R       V-I       J-K&
                          &       H-K       G-V     Gbp-V     Grp-V    G_flag&
                          &        BC      r_pol   oblat   g_pol    Omega_S      v_eq   v_crit1&
                          &   v_crit2  Om/Om_cr lg(Md)  lg(Md_M) Ga_Ed H1         He4        C12        C13&
@@ -4854,8 +4854,8 @@ contains
       Header_Cluster = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
                          &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
                          &        MV       U-B       B-V       V-R       V-I&
-                         &       J-K       H-K       V-K     B2-V1      MV_n     B-V_n&
-                         &       G-V     Gbp-V     Grp-V    G_flag&
+                         &       J-K       H-K       V-K     MV_n     B-V_n&
+                         &       G-V     Gbp-V     Grp-V     G_flag&
                          &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
                          &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
                          &        O17        O18       Ne20       Ne22       Al26'
@@ -4926,8 +4926,7 @@ contains
             CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV), &
             CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
             CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_B2V1),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_VK),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
             CurrentTime_Model(i)%Additional_Data_Line(i_BV_noisy), &
             CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
             CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
@@ -4956,7 +4955,7 @@ contains
             CurrentTime_Model(i)%Data_Line(i_logTeff), &
             CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
             CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_B2V1),CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
             CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
             CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
             CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
