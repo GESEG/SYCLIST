@@ -15,11 +15,11 @@ module DataStructure
     i_Ne20_cen=29,i_Ne22_cen=30,i_Al26_cen=31,i_Omega_surf=32,i_Omega_cen=33, &
     i_oblat=34,i_Mdot_enhencement=35,i_v_crit1=36,i_v_crit2=37,i_v_equa=38, &
     i_Omega_Omcrit=39,i_Gamma_Ed=40,i_Mdot_mec=41,i_L_tot=42
-  integer,parameter,public::Additional_Data_Number = 20  !WARNING : adapt this value to the number of data
+  integer,parameter,public::Additional_Data_Number = 24  !WARNING : adapt this value to the number of data
                                                         !hereafter:
   integer,parameter,public::i_MBol=1,i_MV=2,i_UB=3,i_BV=4,i_B2V1=5,i_VR=6,i_VI=7,i_JK=8,i_HK=9,i_VK=10, &
-    i_PolarRadius=11,i_polar_gravity=12,i_MV_noisy=13,i_BV_noisy=14,i_BC=15,i_logL_gd=16,&
-    i_logTeff_gd=17,i_logL_lgd=18,i_logTeff_lgd=19,i_mean_gravity=20
+    i_GV=11,i_GbpV=12,i_GrpV=13,i_Gflag=14,i_PolarRadius=15,i_polar_gravity=16,i_MV_noisy=17,i_BV_noisy=18, &
+    i_BC=19,i_logL_gd=20,i_logTeff_gd=21,i_logL_lgd=22,i_logTeff_lgd=23,i_mean_gravity=24
 
   character(*),parameter,public::ReadFormat = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
      &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),3(1x,e9.2),&
@@ -1693,7 +1693,7 @@ contains
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: type_TimeModel,i_polar_gravity,i_MBol,i_MV,i_UB,i_BV,i_B2V1,i_VR,i_VI, &
-      i_JK,i_HK,i_VK,i_BC
+      i_JK,i_HK,i_VK,i_BC,i_GV,i_GbpV,i_GrpV,i_Gflag
     use Constant, only: Z_sun
 
     implicit none
@@ -1723,6 +1723,21 @@ contains
 
     Model%Additional_Data_Line(i_Mbol) = -2.5d0*Model%Additional_Data_Line(i_L) + 4.75d0
     Model%Additional_Data_Line(i_MV) = -2.5d0*Model%Additional_Data_Line(i_L)+4.75d0-Model%Additional_Data_Line(i_BC)
+    
+    ! Computation of the Gaia colours according to the DR2 (Evans et al. 2018, arXiv 1804.09368). In case
+    ! the data are off the recommended values for V-I, we set the flag to 1:
+    Model%Additional_Data_Line(i_GV)   = -0.01746d0 + 0.008092d0*Model%Additional_Data_Line(i_VI) &
+                                                    - 0.281000d0*Model%Additional_Data_Line(i_VI)**2.d0 &
+                                                    + 0.036550d0*Model%Additional_Data_Line(i_VI)**3.d0
+    Model%Additional_Data_Line(i_GbpV) = -0.05204d0 + 0.483000d0*Model%Additional_Data_Line(i_VI) &
+                                                    - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0
+    Model%Additional_Data_Line(i_GrpV) =  0.24280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
+                                                    - 0.028660d0*Model%Additional_Data_Line(i_VI)**2.d0
+    if (Model%Additional_Data_Line(i_VI) >= -0.3d0 .or. Model%Additional_Data_Line(i_VI) <= 2.7d0) then
+        Model%Additional_Data_Line(i_Gflag) = 0.d0
+    else
+        Model%Additional_Data_Line(i_Gflag) = 1.d0
+    endif
 
     return
 
@@ -2154,7 +2169,8 @@ contains
 
     use VariousParameters, only: iangle,limb_dark
     use DataStructure, only: type_TimeModel,Additional_Data_Number,i_logTeff_corr,i_logL, &
-                             i_logL_gd,i_logL_lgd,i_logTeff_gd,i_logTeff_lgd
+                             i_logL_gd,i_logL_lgd,i_logTeff_gd,i_logTeff_lgd,i_mean_gravity,&
+                             i_polar_gravity
     implicit none
 
     type(type_TimeModel), intent(inout):: Model
@@ -2180,6 +2196,9 @@ contains
 
     call Compute_PolarRadius(Model)
     call Compute_PolarGravity(Model)
+
+    Model%Additional_Data_Line(i_mean_gravity) = Model%Additional_Data_Line(i_polar_gravity)
+
     ! If wanted, correction of the Teff and luminosity due to the angle of view and actual stellar velocity.
     if (iangle > 0) then
       call Correct_AngleofView(Model)
@@ -4799,7 +4818,7 @@ contains
       i_Omega_surf,i_oblat,i_v_crit1,i_v_crit2,i_v_equa,i_Omega_Omcrit,i_Gamma_Ed,i_Mdot_mec, &
       i_PolarRadius,i_polar_gravity,Table_Line_Number,Data_Number,i_MV_noisy,i_BV_noisy,&
       i_MBol,i_MV,i_UB,i_BV,i_B2V1,i_VK,i_VR,i_VI,i_JK,i_HK,i_BC,i_logL_gd,i_logTeff_gd,i_logL_lgd, &
-      i_logTeff_lgd,i_mean_gravity
+      i_logTeff_lgd,i_mean_gravity,i_GV,i_GbpV,i_GrpV,i_Gflag
     use VariousParameters, only: Current_Number,age_log,Comp_Mode,iangle,limb_dark
     use LoopVariables, only: CurrentTime_Model
     use Population_mode, only: N_Time_step,Evolution_Data,time_step_array,Evolutionary_Values
@@ -4809,17 +4828,18 @@ contains
 
     integer::error,i,j
 
-    character(*),parameter:: Output_Format= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,14(2x,f8.4),2x,1pe9.3,2x,0pf6.4,2x,f6.3,2x,&
+    character(*),parameter:: Output_Format= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,18(2x,f8.4),2x,1pe9.3,2x,0pf6.4,2x,f6.3,2x,&
                                          &e9.3,3(2x,f8.2),2x,f6.4,1x,f7.3,1x,f7.3,2x,f6.4,11(2x,e9.3))'    , &
-      Output_Format_Cluster= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,19(2x,f8.4),2x,&
+      Output_Format_Cluster= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,23(2x,f8.4),2x,&
                                          &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
                                          &f7.3,2x,f6.4,11(2x,e9.3))'    , &
       Output_Format_Single = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
                                          &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),&
-                                         &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,12(2x,f7.3))'    , &
+                                         &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,16(2x,f7.3))'    , &
       Header = ' M_ini      Z_ini  OmOc_ini  M       logL     logTe_c  logTe_nc      MBol        &
                          &MV       U-B       B-V     B2-V1       V-K       V-R       V-I       J-K&
-                         &       H-K        BC      r_pol   oblat   g_pol    Omega_S      v_eq   v_crit1&
+                         &       H-K       G-V     Gbp-V     Grp-V    G_flag&
+                         &        BC      r_pol   oblat   g_pol    Omega_S      v_eq   v_crit1&
                          &   v_crit2  Om/Om_cr lg(Md)  lg(Md_M) Ga_Ed H1         He4        C12        C13&
                          &        N14        O16        O17        O18        Ne20       Ne22       Al26', &
       Header_Be = '      time        #star       O-star       B-star       A-star       F-star&
@@ -4835,7 +4855,8 @@ contains
                          &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
                          &        MV       U-B       B-V       V-R       V-I&
                          &       J-K       H-K       V-K     B2-V1      MV_n     B-V_n&
-                         &      r_pol   oblat   g_pol  g_mean   Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
+                         &       G-V     Gbp-V     Grp-V    G_flag&
+                         &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
                          &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
                          &        O17        O18       Ne20       Ne22       Al26'
 
@@ -4908,6 +4929,8 @@ contains
             CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
             CurrentTime_Model(i)%Additional_Data_Line(i_B2V1),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
             CurrentTime_Model(i)%Additional_Data_Line(i_BV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
             CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius),CurrentTime_Model(i)%Data_Line(i_oblat), &
             log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
             log10(CurrentTime_Model(i)%Additional_Data_Line(i_mean_gravity)), &
@@ -4936,6 +4959,8 @@ contains
             CurrentTime_Model(i)%Additional_Data_Line(i_B2V1),CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
             CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
             CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
             CurrentTime_Model(i)%Additional_Data_Line(i_BC),CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius), &
             CurrentTime_Model(i)%Data_Line(i_oblat),log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
             CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
@@ -4975,7 +5000,7 @@ contains
             log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
             CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius)/R_sun, &
             (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_MBol,i_BV), &
-            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_VR,i_VK), &
+            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_VR,i_Gflag), &
             CurrentTime_Model(i)%Additional_Data_Line(i_BC)
         enddo
       case default
