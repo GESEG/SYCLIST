@@ -1731,7 +1731,7 @@ contains
                                                     + 0.036550d0*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GbpV) = -0.05204d0 + 0.483000d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0
-    Model%Additional_Data_Line(i_GrpV) =  0.24280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
+    Model%Additional_Data_Line(i_GrpV) =  0.00024280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.028660d0*Model%Additional_Data_Line(i_VI)**2.d0
     if (Model%Additional_Data_Line(i_VI) >= -0.3d0 .or. Model%Additional_Data_Line(i_VI) <= 2.7d0) then
         Model%Additional_Data_Line(i_Gflag) = 0.d0
@@ -3242,8 +3242,10 @@ contains
     real(kind=8), dimension(2):: Delta_Teff, Delta_L
 !    real(Kind=8), dimension(2)::HRD_Teff_min = (/0.3d0, -0.2d0/),HRD_Teff_max = (/1.2d0, 0.2d0/), &
 !                                HRD_L_min = (/-3.d0, -2.d0/),HRD_L_max = (/0.5d0, 0.5d0/)
-    real(Kind=8), dimension(2)::HRD_Teff_min = (/0.d0, -0.d0/),HRD_Teff_max = (/450.d0, 450.d0/), &
-                                HRD_L_min = (/7.75d0, 7.75d0/),HRD_L_max = (/10.75d0, 10.75d0/)
+!    real(Kind=8), dimension(2)::HRD_Teff_min = (/0.d0, -0.d0/),HRD_Teff_max = (/450.d0, 450.d0/), &
+!                                HRD_L_min = (/7.75d0, 7.75d0/),HRD_L_max = (/10.75d0, 10.75d0/)
+    real(Kind=8), dimension(2)::HRD_Teff_min = (/0.6d0, 0.6d0/),HRD_Teff_max = (/2.5d0, 2.5d0/), &
+                                HRD_L_min = (/-11.5d0, -11.5d0/),HRD_L_max = (/-4.d0, -4.d0/)
     real(kind=8), dimension(HRD_cell_number,HRD_cell_number,2):: HRD_count
 
     integer:: i,j,k,l
@@ -3505,8 +3507,8 @@ contains
 !              endif
 !              Additional_Var = Time_Step_data(j,k,i,i_tsdata_L)+log10(L_sun)-log10(4.d0*pi*sigma_SB*G_Newton)- &
 !                     log10(Time_Step_data(j,k,i,i_tsdata_Mass))-log10(M_sun)-sl_sun
-!              Additional_Var = log10(4.d0*pi*sigma_SB*G_Newton)+log10(Time_Step_data(j,k,i,i_tsdata_Mass)) + &
-!                       log10(M_sun)-Time_Step_data(j,k,i,i_tsdata_L)-log10(L_sun)+16.d0
+              Additional_Var = log10(4.d0*pi*sigma_SB*G_Newton)+log10(Time_Step_data(j,k,i,i_tsdata_Mass)) + &
+                       log10(M_sun)-Time_Step_data(j,k,i,i_tsdata_L)-log10(L_sun)+16.d0
 !              L_coord = floor((Time_Step_data(j,k,i,i_tsdata_MV)-HRD_L_min)/Delta_L)+1
 !              L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mass)-HRD_L_min)/Delta_L)+1
 !              L_coord = floor((Time_Step_data(j,k,i,i_tsdata_L)-HRD_L_min)/Delta_L)+1
@@ -3533,16 +3535,27 @@ contains
 !                  HRD_count1(Teff_coord,L_coord) = HRD_count1(Teff_coord,L_coord) + Number_of_Star_Beam(j,k)
 !                endif
 !              endif
-              do l=1,2
+!              do l=1,2
+              do l=1,1
 !                L_coord = floor((Time_Step_data(j,k,i,i_tsdata_MV)-HRD_L_min(l))/Delta_L(l))+1
 !                Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_BV)-HRD_Teff_min(l))/Delta_Teff(l))+1
-                Additional_Var = log10(Time_Step_data(j,k,i,i_tsdata_N)/14.d0)-log10(Time_Step_data(j,k,i,i_tsdata_H))+12.d0
-                L_coord = floor((Additional_Var-HRD_L_min(l))/Delta_L(l))+1
-                Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_vsurf)-HRD_Teff_min(l))/Delta_Teff(l))+1
+!                Additional_Var = log10(Time_Step_data(j,k,i,i_tsdata_N)/14.d0)-log10(Time_Step_data(j,k,i,i_tsdata_H))+12.d0
+                Teff_coord = floor((Additional_Var-HRD_Teff_min(l))/Delta_Teff(l))+1
+                L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mbol)-HRD_L_min(l))/Delta_L(l))+1
+!                L_coord = floor((Additional_Var-HRD_L_min(l))/Delta_L(l))+1
+!                Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_vsurf)-HRD_Teff_min(l))/Delta_Teff(l))+1
               ! Check that the coordinates are in the right range
                 if (L_coord>0 .and. L_coord<HRD_cell_number .and. Teff_coord>0 .and. Teff_coord<HRD_cell_number) then
-                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) >= 1.d-5) then
-                  HRD_count(Teff_coord,L_coord,l) = HRD_count(Teff_coord,L_coord,l) + Number_of_Star_Beam(j,k)
+!                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) >= 1.d-5) then
+                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) < 1.d-5 .and. &
+                      Time_Step_data(j,k,i,i_tsdata_Teff) >= 3.9d0 .and. &
+                      Time_Step_data(j,k,i,i_tsdata_Teff) <= 4.4d0 .and. &
+                      .not. is_WR) then
+                    if (Teff_min(j,k) <= 3.8d0 .and. time_step_array(i) >= Teff_min_time(j,k)) then
+                      HRD_count(Teff_coord,L_coord,2) = HRD_count(Teff_coord,L_coord,2) + Number_of_Star_Beam(j,k)
+                    else
+                      HRD_count(Teff_coord,L_coord,1) = HRD_count(Teff_coord,L_coord,1) + Number_of_Star_Beam(j,k)
+                    endif
                   endif
                 endif
               enddo
@@ -3568,15 +3581,15 @@ contains
 !            endif
 !          enddo
 !        enddo
-        !Name_Extension = "BSG1"
+        Name_Extension = "BSG1"
         !Name_Extension = "RSG"
-        Name_Extension = "HunterPlot"
+        !Name_Extension = "HunterPlot"
         call WriteResultsMovie(HRD_count(:,:,1),HRD_Teff_min(1),HRD_L_min(1), &
                                Delta_Teff(1),Delta_L(1),HRD_cell_number,i,Name_Extension)
-!        Name_Extension = "BSG2"
+        Name_Extension = "BSG2"
 !        Name_Extension = "MSTO"
-!        call WriteResultsMovie(HRD_count(:,:,2),HRD_Teff_min(2),HRD_L_min(2), &
-!                               Delta_Teff(2),Delta_L(2),HRD_cell_number,i,Name_Extension)
+        call WriteResultsMovie(HRD_count(:,:,2),HRD_Teff_min(2),HRD_L_min(2), &
+                               Delta_Teff(2),Delta_L(2),HRD_cell_number,i,Name_Extension)
       endif
 
     enddo
