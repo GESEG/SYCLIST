@@ -4622,7 +4622,7 @@ contains
         write(*,*) 'Enter the name of the grid file (can be a full path):'
         read(5,*) Current_GridFile
     end select
-
+    
     open(unit=ReadUnit,file=trim(Current_GridFile),iostat=error,status='old')
     if (error /= 0) then
       write(*,*) 'Unable to open file ',trim(Current_GridFile),'. Check your choice under "Grid" !'
@@ -4786,7 +4786,11 @@ contains
           M_initial = dble(M_ini_int)
           read(mass_String(5:6),'(i2)') M_ini_int
           M_initial = M_initial + 0.01d0*dble(M_ini_int)
-          table_name=trim(Std_Path_tables)//trim(FullPath)
+          if (FullPath(1:1) == "/") then
+            table_name = trim(FullPath)
+          else
+            table_name=trim(Std_Path_tables)//trim(FullPath)
+          endif
           if (verbose) then
             write(*,'(a,f5.3,1x,f6.2,1x,f4.2)') 'Z,M,OOc: ',Z_initial,M_initial,omega_initial
             write(*,*) 'File ',trim(table_name)
