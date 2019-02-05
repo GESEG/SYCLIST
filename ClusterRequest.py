@@ -177,5 +177,5 @@ os.chdir(start_dir)
 print '-----------------------------------------------------------------'
 print 'Dear SYCLIST user,\n'
 print 'Please find below the cluster you requested on ',request_date.strftime('%a %d %b %Y at %H:%M:%S'),' (CET).\n'
-print 'The file format can be found here: http://obswww.unige.ch/Recherche/evoldb/index/Formats/#cluster'
+print 'The file format can be found here: https://obswww.unige.ch/Recherche/nevoldb/index/Formats/#cluster'
 print '-----------------------------------------------------------------'
