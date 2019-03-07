@@ -5,7 +5,9 @@ module DataStructure
 
   implicit none
 
-  integer,parameter,public::Table_Line_Number = 400
+  integer,parameter,public::Table_Line_Number_normal = 400
+  integer,parameter,public::Table_Line_Number_PMS = 500
+  integer,public,save::Table_Line_Number = 400
   integer,parameter,public::Data_Number = 42   ! WARNING : adapt this value to the number of data hereafter:
   integer,parameter,public::i_time = 1,i_mass=2,i_logL=3,i_logTeff_corr=4,i_H1_Surf=5,i_He4_surf=6, &
     i_C12_surf=7,i_C13_surf=8,i_N14_surf=9,i_O16_surf=10,i_O17_surf=11, &
@@ -34,8 +36,10 @@ module DataStructure
 
     character(512)::FileName
 
-    integer,dimension(Table_Line_Number)::line
-    real(kind=8),dimension(Table_Line_Number,Data_Number)::Data_Table
+    !integer,dimension(Table_Line_Number)::line
+    integer,dimension(:),allocatable::line
+    !real(kind=8),dimension(Table_Line_Number,Data_Number)::Data_Table
+    real(kind=8),dimension(:,:),allocatable::Data_Table
 
   end type type_DataStructure
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -53,10 +57,56 @@ module DataStructure
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   public::FillData
+  public::Init_DataStructure
+  public::Del_DataStructure
 
 contains
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    subroutine Init_DataStructure(Number_of_lines,MyDataStructure)
+    ! Initiate the dimension of the DataStructure dynamically.
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+      implicit none
+      
+      integer, intent(in):: Number_of_lines
+      type(type_DataStructure),intent(out)::MyDataStructure
+      
+      integer::i,j
+        
+      allocate(MyDataStructure%line(Number_of_lines))
+      allocate(MyDataStructure%Data_Table(Number_of_lines,Data_Number))
+      
+      do i=1,Number_of_lines
+        MyDataStructure%line(i) = -1
+      enddo
+      do i=1,Number_of_lines
+        do j=1,Data_Number
+          MyDataStructure%Data_Table(i,j) = -10.d0
+        enddo
+      enddo
+        
+      return
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    end subroutine Init_DataStructure
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
+    
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    subroutine Del_DataStructure(MyDataStructure)
+    ! Delete DataStructure arrays.
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
+
+      implicit none
+      
+      type(type_DataStructure),intent(inout)::MyDataStructure
+    
+      deallocate(MyDataStructure%line)
+      deallocate(MyDataStructure%Data_Table)      
+    
+    end subroutine Del_DataStructure
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine FillData(Z,Mini,Omini,FileNameIn,Structure)
     ! Read the evolution file and fill the structure.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -65,7 +115,7 @@ contains
     real(kind=8),intent(in)::Z,Mini,Omini
     character(512),intent(in)::FileNameIn
 
-    type(type_DataStructure),intent(out)::Structure
+    type(type_DataStructure),intent(inout)::Structure
 
     integer::LineNumber,error=0,i,j
     integer,parameter::ReadUnit=30,Line_to_Remove = 3
@@ -226,6 +276,7 @@ module VariousParameters
   real(kind=8),dimension(:,:),public,pointer,save::mass_List=>null() ! List of the masses.
   real(kind=8),dimension(:),public,pointer,save::Z_List=>null() ! List of the metallicities.
 
+  logical,public,save::PMS=.false.
   logical,public,save::Compute                                  ! Used in the main loop
 
   type(type_DataStructure),dimension(:,:,:),public,pointer,save::All_Data_Array=>null() ! Array containing
@@ -739,7 +790,8 @@ contains
     use DataStructure, only:type_DataStructure,i_mass,Table_Line_Number,i_H1_Surf,i_He4_surf,i_C12_surf,i_C13_surf, &
       i_N14_surf,i_O16_surf,i_O17_surf,i_O18_surf,i_Ne20_surf,i_Ne22_surf,i_Al26_surf,i_Mcc, &
       i_H1_cen,i_He4_cen,i_C12_cen,i_C13_cen,i_N14_cen,i_O16_cen,i_O17_cen,i_O18_cen,i_Ne20_cen, &
-      i_Ne22_cen,i_Al26_cen,i_Omega_Omcrit,i_Gamma_Ed,i_Omega_surf,i_Mcc,i_oblat,i_v_equa,i_v_crit1,i_v_crit2
+      i_Ne22_cen,i_Al26_cen,i_Omega_Omcrit,i_Gamma_Ed,i_Omega_surf,i_Mcc,i_oblat,i_v_equa,i_v_crit1,i_v_crit2, &
+      Init_DataStructure,Del_DataStructure
     use VariousParameters, only:All_Data_Array,Z_Number
 
     implicit none
@@ -755,6 +807,11 @@ contains
     type(type_DataStructure)::Structure_Below,Structure_Above
 
     integer::i
+    
+    ! Initialisation of the intermediate structures used here:
+    call Init_DataStructure(400,New_Structure)
+    call Init_DataStructure(400,Structure_Below)
+    call Init_DataStructure(400,Structure_Above)
 
     ! The interpolation is done in the order: 1. omega interpolation, 2. mass interpolation (log) and 3. metallicity
     ! interpolation (log). If only one m/z/omega is present, no interpolation is needed (the check of the values
@@ -764,7 +821,7 @@ contains
       if (factor_z == 1.d0) then
         ! If the metallicity is the last one in the metallicity list, no interpolation in metallicity is performed.
         call Interpol_Mass(Position_z+1,Position_m(1),factor_m(1),Position_o(1,:),factor_o(1,:), &
-          New_Structure)
+                           New_Structure)
       else if (factor_z == 0.d0) then
         ! If we are close to an existing metallicity, no interpolation is needed.
         call Interpol_Mass(Position_z,Position_m(1),factor_m(1),Position_o(1,:),factor_o(1,:), &
@@ -959,7 +1016,11 @@ contains
         New_Structure%Data_Table(i,i_v_crit2) = 0.d0
       endif
     enddo
-
+    
+    ! Delete intermediate strutures:
+    call Del_DataStructure(Structure_Below)
+    call Del_DataStructure(Structure_Above)
+    
     return
 
   end subroutine Make_InterpolatedModel
@@ -970,7 +1031,7 @@ contains
     ! Perform the interpolation in mass.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only:type_DataStructure,i_mass,i_time
+    use DataStructure, only:type_DataStructure,i_mass,i_time,Init_DataStructure,Del_DataStructure
     use VariousParameters, only:All_Data_Array,mass_Number_array
 
     implicit none
@@ -979,9 +1040,14 @@ contains
     integer, dimension(2), intent(in):: Omega_Position
     real(kind=8), intent(in):: Mass_factor
     real(kind=8), dimension(2), intent(in)::Omega_factor
-    type(type_DataStructure),intent(out)::Interpolated_Structure
+    type(type_DataStructure),intent(inout)::Interpolated_Structure
     type(type_DataStructure)::Structure_Below,Structure_Above
 
+    !Initialisation of the temporary structures:
+    call Init_DataStructure(400,Structure_Below)
+    call Init_DataStructure(400,Structure_Above)
+    
+        
     if (mass_Number_array(Z_coord) > 1) then
       ! Enough masses to perform interpolation.
       if (Mass_factor == 1.d0) then
@@ -1017,6 +1083,10 @@ contains
       call Interpol_Omega(Z_coord,Mass_Position,Omega_Position(1),Omega_factor(1),Interpolated_Structure)
     endif
 
+    ! Delete intermediate strutures:
+    call Del_DataStructure(Structure_Below)
+    call Del_DataStructure(Structure_Above)
+
     return
 
   end subroutine Interpol_Mass
@@ -1034,7 +1104,7 @@ contains
 
     integer, intent(in)::Z_coord,M_coord,Om_Pos
     real(kind=8), intent(in)::Om_fac
-    type(type_DataStructure),intent(out)::Interpolated_Structure
+    type(type_DataStructure),intent(inout)::Interpolated_Structure
 
     if (Omega_Number_array(Z_coord,M_coord) > 1) then
       ! Enough velocities to perform interpolation
@@ -1061,7 +1131,7 @@ contains
 
     real(kind=8), intent(in)::factor
     type(type_DataStructure), intent(in)::Structure_in_1,Structure_in_2
-    type(type_DataStructure), intent(out)::Structure_out
+    type(type_DataStructure), intent(inout)::Structure_out
 
     integer::i
 
@@ -3986,7 +4056,7 @@ contains
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use VariousParameters, only:grid,m_IMF_inf,m_IMF_sup,i_Metallicity,fixed_metallicity,ivdist,om_ivdist,iangle, &
-      Fixed_AoV_latitude,grav_dark,limb_dark,binary_prob,inoise,sigma_mv,sigma_bv,Colour_Calibration_mode
+      Fixed_AoV_latitude,grav_dark,limb_dark,binary_prob,inoise,sigma_mv,sigma_bv,Colour_Calibration_mode,PMS
 
     implicit none
 
@@ -4003,7 +4073,11 @@ contains
     write(*,*)
     write(*,*) '**********************************************'
     write(*,*) 'The defaults parameters are :'
-    write(*,*) 'Grids: ',grid
+    if (.not. PMS) then
+       write(*,*) 'Grids: ',grid, 'without pre-MS'
+    else
+       write(*,*) 'Grids: ',grid, 'with pre-MS'
+    endif
     write(*,'(a,f6.2,a,f6.2,a)') ' -Salpeter IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
     write(*,*) 'Metallicity distribution :'
     select case (i_metallicity)
@@ -4157,7 +4231,7 @@ contains
     use VariousParameters, only:grid,star_number,m_IMF_inf,m_IMF_sup,m_IMF_inf_Grids2012, &
       m_IMF_sup_Grids2012,m_IMF_inf_BeGrids,m_IMF_sup_BeGrids,ivdist,om_ivdist,iangle, &
       Fixed_AoV_latitude,binary_prob,inoise,IMF_type,sigma_mv,sigma_bv,fixed_metallicity, &
-      Colour_Calibration_mode,grav_dark,limb_dark
+      Colour_Calibration_mode,grav_dark,limb_dark,PMS
 
     implicit none
 
@@ -4174,22 +4248,23 @@ contains
       write(*,*)
       write(*,*) 'Parameters you can change:'
       write(*,'(a,a)') '1. Grid                                     ',grid
-      write(*,'(a,i8)') '2. maximum number of star in the cluster  ',star_number
-      write(*,'(a,i5)') '3. IMF type                                  ',IMF_type
-      write(*,'(a,f6.2)') '4. minimum mass for IMF                     ',m_IMF_inf
-      write(*,'(a,f6.2)') '5. maximum mass for IMF                     ',m_IMF_sup
-      write(*,'(a,f6.4)') '6. metallicity                              ',fixed_metallicity
-      write(*,'(a,i5)') '7. angular velocity distribution             ',ivdist
-      write(*,'(a,f5.2)') '8. special angular velocity (ivdist=3)       ',om_ivdist
-      write(*,'(a,i5)') '9. angle of view distribution                ',iangle
-      write(*,'(a,f5.2)') '10. special angle of view (iangle=3)         ',Fixed_AoV_latitude
-      write(*,'(a,f5.2)') '11. probability of binarity                  ',binary_prob
-      write(*,'(a,i5)') '12. Colour - Teff calibration                ',Colour_Calibration_mode
-      write(*,'(a,i5)') '13. noise                                    ',inoise
-      write(*,'(a,f5.3)') '14. sigma in M_V                             ',sigma_mv
-      write(*,'(a,f5.3)') '15. sigma in B-V                             ',sigma_bv
-      write(*,'(a,i5)') '16. Gravity Darkening                        ',grav_dark
-      write(*,'(a,i5)') '17. Limb Darkening                           ',limb_dark
+      write(*,'(a,l)') '2. Tables with PMS                          ',PMS
+      write(*,'(a,i8)') '3. maximum number of star in the cluster  ',star_number
+      write(*,'(a,i5)') '4. IMF type                                  ',IMF_type
+      write(*,'(a,f6.2)') '5. minimum mass for IMF                     ',m_IMF_inf
+      write(*,'(a,f6.2)') '6. maximum mass for IMF                     ',m_IMF_sup
+      write(*,'(a,f6.4)') '7. metallicity                              ',fixed_metallicity
+      write(*,'(a,i5)') '8. angular velocity distribution             ',ivdist
+      write(*,'(a,f5.2)') '9. special angular velocity (ivdist=3)       ',om_ivdist
+      write(*,'(a,i5)') '10. angle of view distribution                ',iangle
+      write(*,'(a,f5.2)') '11. special angle of view (iangle=3)         ',Fixed_AoV_latitude
+      write(*,'(a,f5.2)') '12. probability of binarity                  ',binary_prob
+      write(*,'(a,i5)') '13. Colour - Teff calibration                ',Colour_Calibration_mode
+      write(*,'(a,i5)') '14. noise                                    ',inoise
+      write(*,'(a,f5.3)') '15. sigma in M_V                             ',sigma_mv
+      write(*,'(a,f5.3)') '16. sigma in B-V                             ',sigma_bv
+      write(*,'(a,i5)') '17. Gravity Darkening                        ',grav_dark
+      write(*,'(a,i5)') '18. Limb Darkening                           ',limb_dark
       read(*,*) Change_Param
       select case(Change_Param)
         case(0)
@@ -4223,9 +4298,23 @@ contains
              m_IMF_sup = m_IMF_sup_BeGrids
           endif
         case(2)
+          Temp_Var_Int=10
+          do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
+            write(*,*) 'Tables with PMS ? (1) yes (0) no.'
+            read(*,*) Temp_Var_Int
+            if(Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1) then
+              write(*,*) 'Please enter (0) no PMS (1) with PMS.'
+            endif
+          enddo
+          if (Temp_Var_Int == 1) then
+            PMS = .true.
+          else
+            PMS = .false.
+          endif
+        case(3)
           write(*,*) 'Number of stars in the synthetic cluster:'
           read(*,*) star_number
-        case(3)
+        case(4)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1)
             write(*,*) 'What do you want for the IMF?'
@@ -4236,7 +4325,7 @@ contains
             endif
           enddo
           IMF_type=Temp_Var_Int
-        case(4)
+        case(5)
           write(*,*) 'What do you want for minimal IMF mass ?'
           read(*,*) m_IMF_inf
           if (grid == "Grids2012" .and. m_IMF_inf < m_IMF_inf_Grids2012) then
@@ -4247,7 +4336,7 @@ contains
             write(*,*) "Minimal IMF mass too low for this grid, reset to ", m_IMF_inf_BeGrids," !"
             m_IMF_inf = m_IMF_inf_BeGrids
           endif
-        case(5)
+        case(6)
           write(*,*) 'What do you want for maximal IMF mass ?'
           read(*,*) m_IMF_sup
           if (grid == "Grids2012" .and. m_IMF_sup > m_IMF_sup_Grids2012) then
@@ -4258,7 +4347,7 @@ contains
             write(*,*) "Maximal IMF mass too high for this grid, reset to ", m_IMF_sup_BeGrids," !"
              m_IMF_sup = m_IMF_sup_BeGrids
           endif
-        case(6)
+        case(7)
           Temp_Var_real=-2.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'Value for the Dirac metallicity distribution :'
@@ -4268,7 +4357,7 @@ contains
             endif
           enddo
           fixed_metallicity=Temp_Var_real
-        case(7)
+        case(8)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. &
             Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
@@ -4285,7 +4374,7 @@ contains
             endif
           enddo
           ivdist=Temp_Var_Int
-        case(8)
+        case(9)
           Temp_Var_real=2.d0
           do while (Temp_Var_real > 1.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'Value for the Dirac velocity distribution :'
@@ -4295,7 +4384,7 @@ contains
             endif
           enddo
           om_ivdist=Temp_Var_real
-        case(9)
+        case(10)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /=2 .and. &
             Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
@@ -4312,7 +4401,7 @@ contains
             endif
           enddo
           iangle=Temp_Var_Int
-        case(10)
+        case(11)
           Temp_Var_real=100.d0
           do while (Temp_Var_real > 90.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'Angle of view of the Dirac distribution:'
@@ -4322,7 +4411,7 @@ contains
             endif
           enddo
           Fixed_AoV_latitude=Temp_Var_real
-        case(11)
+        case(12)
           Temp_Var_real=2.d0
           do while (Temp_Var_real > 1.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for binary probability ?'
@@ -4332,7 +4421,7 @@ contains
             endif
           enddo
           binary_prob=Temp_Var_real
-        case(12)
+        case(13)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Old calibration (grids 2011 paper I) (1) or Worthey & Lee, ApJS 193 1 (2011) (2) ?'
@@ -4342,7 +4431,7 @@ contains
             endif
           enddo
           Colour_Calibration_mode=Temp_Var_Int
-        case(13)
+        case(14)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Add noise ? (1) yes (0) no.'
@@ -4352,7 +4441,7 @@ contains
             endif
           enddo
           inoise=Temp_Var_Int
-        case(14)
+        case(15)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma M_V ?'
@@ -4362,7 +4451,7 @@ contains
             endif
           enddo
           sigma_mv=Temp_Var_real
-        case(15)
+        case(16)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma B-V'
@@ -4372,7 +4461,7 @@ contains
             endif
           enddo
           sigma_bv=Temp_Var_real
-        case(16)
+        case(17)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Gravity Darkening Correction ? (1) von Zeipel 1924 (2) Espinosa-Lara & Rieutord 2011.'
@@ -4382,7 +4471,7 @@ contains
             endif
           enddo
           grav_dark = Temp_Var_Int
-        case(17)
+        case(18)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Limb Darkening Correction ? (1) yes (0) no.'
@@ -4592,7 +4681,7 @@ contains
 
     use VariousParameters, only: Std_Path,Std_Path_tables,ListFileGrids2012,ListFileBeGrids,ListFileFastBe, &
       Z_Number,All_Data_Array,Z_List,mass_List,omega_list,mass_Number_array,omega_Number_array,grid
-    use DataStructure, only: FillData,verbose
+    use DataStructure, only: FillData,verbose,Init_DataStructure
 
     implicit none
 
@@ -4794,6 +4883,7 @@ contains
             write(*,'(a,f5.3,1x,f6.2,1x,f4.2)') 'Z,M,OOc: ',Z_initial,M_initial,omega_initial
             write(*,*) 'File ',trim(table_name)
           endif
+          call Init_DataStructure(400,All_Data_Array(i,j,k))
           call FillData(Z_initial,M_initial,omega_initial,table_name,All_Data_Array(i,j,k))
         enddo
       enddo
@@ -4817,7 +4907,7 @@ contains
         enddo
       enddo
     enddo
-
+    
     close(ReadUnit)
 
     return
@@ -5055,7 +5145,7 @@ contains
     implicit none
 
     real(kind=8), intent(in)::age_log
-    type(type_DataStructure), intent(in)::Model
+    type(type_DataStructure), intent(inout)::Model
 
     logical, intent(out)::test, near_the_end
 
@@ -5144,7 +5234,7 @@ contains
 
     use DataStructure, only: type_DataStructure,Table_Line_Number,i_logTeff,i_logL,i_logTeff_corr,i_time
     use VariousParameters, only: IMF_type,Star_Z,Star_mass,Star_omega,Star_AoV,ivdist,age_log,fixed_metallicity, &
-      om_ivdist,star_number,Comp_Mode,iangle,Z_Number,mass_Number_array,Fixed_AoV
+      om_ivdist,star_number,Comp_Mode,iangle,Z_Number,mass_Number_array,Fixed_AoV,All_Data_Array
     use LoopVariables, only:Z_Position,Z_factor,omega_Position,omega_factor,mass_Position,mass_factor, &
       Interpolated_Model,CurrentTime_Model
     use random, only: Z_RandomDraw,Mass_RandomDraw,Omega_RandomDraw,AoV_RandomDraw
@@ -5214,10 +5304,9 @@ contains
             call All_Positions_and_factors(Star_Z,Z_Position,Z_factor,Star_mass,mass_Position(:),mass_factor(:), &
                                            Star_omega,omega_Position(:,:),omega_factor(:,:))
 
-        ! Perform the interpolation
-        call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
-          omega_factor,Interpolated_Model)
-
+            ! Perform the interpolation
+            call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
+                                        omega_factor,Interpolated_Model)
             call Check_MassRange(age_log,Interpolated_Model,mass_in_mass_range,near_the_end)
             ! Near the maximal mass, try to find the maximal mass with a better accuracy.
             if (Comp_Mode == 2 .and. Current_Number > 1 .and. .not. Compute) then
@@ -5383,8 +5472,8 @@ contains
     ! Initialisations of some parameters
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only: Table_Line_Number
-    use VariousParameters, only:m_IMF_inf,m_IMF_sup,star_number,Comp_Mode,age_log
+    use DataStructure, only: Table_Line_Number,Table_Line_Number_normal,Table_Line_Number_PMS
+    use VariousParameters, only:m_IMF_inf,m_IMF_sup,star_number,Comp_Mode,age_log,PMS
     use LoopVariables, only:CurrentTime_Model
 
     implicit none
@@ -5398,6 +5487,13 @@ contains
     Cluster_mass = 0.d0
 
     Compute = .true.
+    
+    !Initialise parameters depending on PMS in the tables or not.
+    if (PMS) then
+      Table_Line_Number = Table_Line_Number_PMS
+    else
+      Table_Line_Number = Table_Line_Number_normal
+    endif
 
     select case (Comp_Mode)
       case (1)
@@ -5676,7 +5772,7 @@ module Configuration_File
 
   use VariousParameters, only: grid,star_number,i_metallicity,ivdist,iangle,inoise,IMF_type,Fixed_AoV_latitude, &
     m_IMF_inf,m_IMF_sup,fixed_metallicity,om_ivdist,binary_prob,sigma_mv,sigma_bv, &
-    Colour_Calibration_mode, limb_dark,grav_dark
+    Colour_Calibration_mode, limb_dark,grav_dark,PMS
   use Population_Mode, only: Pop_Mass_Beam_Number,Pop_Omega_Beam_Number,N_Time_step
 
   implicit none
@@ -5736,6 +5832,10 @@ contains
     read(Unit_Config_File,'(8x,a)',iostat=ierror) grid
     if (ierror /= 0) then
       grid = 'BeGrids'
+    endif
+    read(Unit_Config_File,'(8x,l)',iostat=ierror) PMS
+    if (ierror /= 0) then
+      PMS = .false.
     endif
     read(Unit_Config_File,'(15x,i9)',iostat=ierror) star_number
     if (ierror /= 0) then
@@ -5847,6 +5947,7 @@ contains
     write(Unit_Config_File,'(a)') '*******************************'
 
     write(Unit_Config_File,'(a,2x,a)') 'Grid: ', grid
+    write(Unit_Config_File,'(a,2x,l)') 'PMS: ',PMS
     write(Unit_Config_File,'(a,2x,i9)') 'Star Number: ',star_number
     write(Unit_Config_File,'(a,2x,i1)') 'Metallicity distribution: ',i_metallicity
     write(Unit_Config_File,'(a,2x,f6.4)') 'Metallicity: ', fixed_metallicity
@@ -5884,9 +5985,9 @@ program PopStarII
   ! Main part of the programm. Calls various modules.
   ! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-  use DataStructure, only: verbose
-  use VariousParameters, only:Comp_Mode,init_AoV,ivdist,iangle
-
+  use DataStructure, only: verbose,Del_DataStructure
+  use VariousParameters, only:Comp_Mode,init_AoV,ivdist,iangle,All_Data_Array,Z_Number,mass_Number_array, &
+                              omega_Number_array
   use random, only:init_random
   use ReadData, only:init_Huang,init_HG,init_external,init_Correction,init_VcritOmega,init_SurfaceOmega, &
                      init_Correct_fact,init_angle_external
@@ -5896,7 +5997,7 @@ program PopStarII
 
   implicit none
 
-  integer:: argtot,iargc
+  integer:: argtot,iargc,i,j,k
   character(256):: argv
 
   argtot = iargc()
@@ -5947,6 +6048,15 @@ program PopStarII
 
   ! Save the configuration file
   call Write_Config
+  
+  ! Delete the arrays:
+  do i=1,Z_Number
+    do j=1,mass_Number_array(i)
+      do k=1,omega_Number_array(i,j)
+        call Del_DataStructure(All_Data_Array(i,j,k))
+      enddo
+    enddo
+  enddo
 
   print*, char(7)
 
