@@ -711,7 +711,7 @@ contains
           call omega_Position_and_factor(Star_omega,Real_Z_Position-1+i,mass_Position(i)+1, &
             omega_Position(i,1),omega_factor(i,1))
         else if (mass_factor(i) == 0.d0) then
-          ! In that case, no interpolation in Z will be needed, only one mass position is mandatory.
+          ! In that case, no interpolation in omega will be needed, only one mass position is mandatory.
           call omega_Position_and_factor(Star_omega,Real_Z_Position-1+i,mass_Position(i), &
             omega_Position(i,1),omega_factor(i,1))
         else
@@ -1194,13 +1194,12 @@ contains
     enddo
     factor = give_factor(Current_Time,Interpolated_Model%Data_Table(Current_time_line_number,i_time), &
       Interpolated_Model%Data_Table(Current_time_line_number+1,i_time))
-
+    
     ! Copy the header of the interpolated model in the current time model header
     CurrentTime_Line%Metallicity = Interpolated_Model%Metallicity
     CurrentTime_Line%mass_ini = Interpolated_Model%mass_ini
     CurrentTime_Line%Omega_Omcrit_ini = Interpolated_Model%Omega_Omcrit_ini
     CurrentTime_Line%Current_Time = Current_Time
-
     call Interpol_factor_array(Interpolated_Model%Data_Table(Current_time_line_number,:), &
       Interpolated_Model%Data_Table(Current_time_line_number+1,:), factor,1,Data_Number, &
       CurrentTime_Line%Data_Line(:))
@@ -1733,7 +1732,7 @@ contains
                                                     - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0
     Model%Additional_Data_Line(i_GrpV) =  0.00024280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.028660d0*Model%Additional_Data_Line(i_VI)**2.d0
-    if (Model%Additional_Data_Line(i_VI) >= -0.3d0 .or. Model%Additional_Data_Line(i_VI) <= 2.7d0) then
+    if (Model%Additional_Data_Line(i_VI) >= -0.3d0 .and. Model%Additional_Data_Line(i_VI) <= 2.7d0) then
         Model%Additional_Data_Line(i_Gflag) = 0.d0
     else
         Model%Additional_Data_Line(i_Gflag) = 1.d0
