@@ -8,15 +8,26 @@ module DataStructure
   integer,parameter,public::Table_Line_Number_normal = 400
   integer,parameter,public::Table_Line_Number_PMS = 500
   integer,public,save::Table_Line_Number = 400
-  integer,parameter,public::Data_Number = 42   ! WARNING : adapt this value to the number of data hereafter:
-  integer,parameter,public::i_time = 1,i_mass=2,i_logL=3,i_logTeff_corr=4,i_H1_Surf=5,i_He4_surf=6, &
-    i_C12_surf=7,i_C13_surf=8,i_N14_surf=9,i_O16_surf=10,i_O17_surf=11, &
-    i_O18_surf=12,i_Ne20_surf=13,i_Ne22_surf=14,i_Al26_surf=15,i_Mcc=16, &
-    i_logTeff=17,i_Mdot = 18,i_rhoc=19,i_Tc=20,i_H1_cen=21,i_He4_cen=22, &
-    i_C12_cen=23,i_C13_cen=24,i_N14_cen=25,i_O16_cen=26,i_O17_cen=27,i_O18_cen=28, &
-    i_Ne20_cen=29,i_Ne22_cen=30,i_Al26_cen=31,i_Omega_surf=32,i_Omega_cen=33, &
-    i_oblat=34,i_Mdot_enhencement=35,i_v_crit1=36,i_v_crit2=37,i_v_equa=38, &
-    i_Omega_Omcrit=39,i_Gamma_Ed=40,i_Mdot_mec=41,i_L_tot=42
+  integer,parameter,private::Data_Number_GE = 42   ! WARNING : adapt this value to the number of data hereafter:
+  integer,public::Data_Number = -1
+  integer,parameter,private::i_time_GE=1,i_mass_GE=2,i_logL_GE=3,i_logTeff_corr_GE=4, &
+    i_H1_Surf_GE=5,i_He4_surf_GE=6,i_C12_surf_GE=7,i_C13_surf_GE=8,i_N14_surf_GE=9, &
+    i_O16_surf_GE=10,i_O17_surf_GE=11,i_O18_surf_GE=12,i_Ne20_surf_GE=13,i_Ne22_surf_GE=14, &
+    i_Al26_surf_GE=15,i_Mcc_GE=16,i_logTeff_GE=17,i_Mdot_GE=18,i_rhoc_GE=19,i_Tc_GE=20, &
+    i_H1_cen_GE=21,i_He4_cen_GE=22,i_C12_cen_GE=23,i_C13_cen_GE=24,i_N14_cen_GE=25, &
+    i_O16_cen_GE=26,i_O17_cen_GE=27,i_O18_cen_GE=28,i_Ne20_cen_GE=29,i_Ne22_cen_GE=30, &
+    i_Al26_cen_GE=31,i_Omega_surf_GE=32,i_Omega_cen_GE=33,i_oblat_GE=34,i_Mdot_enhencement_GE=35, &
+    i_v_crit1_GE=36,i_v_crit2_GE=37,i_v_equa_GE=38,i_Omega_Omcrit_GE=39,i_Gamma_Ed_GE=40, &
+    i_Mdot_mec_GE=41,i_L_tot_GE=42
+  integer,public::i_time=-1,i_mass=-1,i_logL=-1,i_logTeff_corr=-1, &
+    i_H1_Surf=-1,i_He4_surf=-1,i_C12_surf=-1,i_C13_surf=-1,i_N14_surf=-1, &
+    i_O16_surf=-1,i_O17_surf=-1,i_O18_surf=-1,i_Ne20_surf=-1,i_Ne22_surf=-1, &
+    i_Al26_surf=-1,i_Mcc=-1,i_logTeff=-1,i_Mdot=-1,i_rhoc=-1,i_Tc=-1, &
+    i_H1_cen=-1,i_He4_cen=-1,i_C12_cen=-1,i_C13_cen=-1,i_N14_cen=-1, &
+    i_O16_cen=-1,i_O17_cen=-1,i_O18_cen=-1,i_Ne20_cen=-1,i_Ne22_cen=-1, &
+    i_Al26_cen=-1,i_Omega_surf=-1,i_Omega_cen=-1,i_oblat=-1,i_Mdot_enhencement=-1, &
+    i_v_crit1=-1,i_v_crit2=-1,i_v_equa=-1,i_Omega_Omcrit=-1,i_Gamma_Ed=-1, &
+    i_Mdot_mec=-1,i_L_tot=-1
   integer,parameter,public::Additional_Data_Number = 24  !WARNING : adapt this value to the number of data
                                                         !hereafter:
   integer,parameter,public::i_MBol=1,i_MV=2,i_UB=3,i_BV=4,i_B2V1=5,i_VR=6,i_VI=7,i_JK=8,i_HK=9,i_VK=10, &
@@ -36,9 +47,7 @@ module DataStructure
 
     character(512)::FileName
 
-    !integer,dimension(Table_Line_Number)::line
     integer,dimension(:),allocatable::line
-    !real(kind=8),dimension(Table_Line_Number,Data_Number)::Data_Table
     real(kind=8),dimension(:,:),allocatable::Data_Table
 
   end type type_DataStructure
@@ -50,7 +59,7 @@ module DataStructure
     integer::star_ID,Is_a_Binary
     real(kind=8)::Metallicity,mass_ini,Omega_Omcrit_ini,Current_Time,mass_ratio,Angle_of_View
 
-    real(kind=8),dimension(Data_Number)::Data_Line
+    real(kind=8),dimension(:),allocatable::Data_Line
     real(kind=8),dimension(Additional_Data_Number)::Additional_Data_Line
 
   end type type_TimeModel
@@ -59,54 +68,145 @@ module DataStructure
   public::FillData
   public::Init_DataStructure
   public::Del_DataStructure
+  public::Init_Indices
+  public::Init_TimeModel
 
 contains
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    subroutine Init_DataStructure(Number_of_lines,MyDataStructure)
-    ! Initiate the dimension of the DataStructure dynamically.
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine Init_DataStructure(Number_of_lines,Number_of_data,MyDataStructure)
+  ! Initiate the dimension of the DataStructure dynamically.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-      implicit none
-      
-      integer, intent(in):: Number_of_lines
-      type(type_DataStructure),intent(out)::MyDataStructure
-      
-      integer::i,j
+    implicit none
+    
+    integer, intent(in):: Number_of_lines,Number_of_data
+    type(type_DataStructure),intent(out)::MyDataStructure
+    
+    integer::i,j
         
-      allocate(MyDataStructure%line(Number_of_lines))
-      allocate(MyDataStructure%Data_Table(Number_of_lines,Data_Number))
+    allocate(MyDataStructure%line(Number_of_lines))
+    allocate(MyDataStructure%Data_Table(Number_of_lines,Number_of_data))
       
-      do i=1,Number_of_lines
-        MyDataStructure%line(i) = -1
+    do i=1,Number_of_lines
+      MyDataStructure%line(i) = -1
+    enddo
+    do i=1,Number_of_lines
+      do j=1,Number_of_data
+        MyDataStructure%Data_Table(i,j) = -10.d0
       enddo
-      do i=1,Number_of_lines
-        do j=1,Data_Number
-          MyDataStructure%Data_Table(i,j) = -10.d0
-        enddo
-      enddo
+    enddo
         
-      return
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    return
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    end subroutine Init_DataStructure
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
+  end subroutine Init_DataStructure
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    subroutine Del_DataStructure(MyDataStructure)
-    ! Delete DataStructure arrays.
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine Del_DataStructure(MyDataStructure)
+  ! Delete DataStructure arrays.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
 
-      implicit none
+    implicit none
+    
+    type(type_DataStructure),intent(inout)::MyDataStructure
+    
+    deallocate(MyDataStructure%line)
+    deallocate(MyDataStructure%Data_Table)      
+  
+  end subroutine Del_DataStructure
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine Init_Indices(MyFormat)
+  ! Delete DataStructure arrays.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       
-      type(type_DataStructure),intent(inout)::MyDataStructure
+    implicit none
+      
+    integer,intent(in):: MyFormat
     
-      deallocate(MyDataStructure%line)
-      deallocate(MyDataStructure%Data_Table)      
-    
-    end subroutine Del_DataStructure
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if (MyFormat == 1) then
+    ! GENEC format
+      Data_Number = Data_Number_GE
+      i_time = i_time_GE
+      i_mass = i_mass_GE
+      i_logL = i_logL_GE
+      i_logTeff_corr = i_logTeff_corr_GE
+      i_H1_Surf = i_H1_Surf_GE
+      i_He4_surf = i_He4_surf_GE
+      i_C12_surf = i_C12_surf_GE
+      i_C13_surf = i_C13_surf_GE
+      i_N14_surf = i_N14_surf_GE
+      i_O16_surf = i_O16_surf_GE
+      i_O17_surf = i_O17_surf_GE
+      i_O18_surf = i_O18_surf_GE
+      i_Ne20_surf = i_Ne20_surf_GE
+      i_Ne22_surf = i_Ne22_surf_GE
+      i_Al26_surf = i_Al26_surf_GE
+      i_Mcc = i_Mcc_GE
+      i_logTeff = i_logTeff_GE
+      i_Mdot = i_Mdot_GE
+      i_rhoc = i_rhoc_GE
+      i_Tc = i_Tc_GE
+      i_H1_cen = i_H1_cen_GE
+      i_He4_cen = i_He4_cen_GE
+      i_C12_cen = i_C12_cen_GE
+      i_C13_cen = i_C13_cen_GE
+      i_N14_cen = i_N14_cen_GE
+      i_O16_cen = i_O16_cen_GE
+      i_O17_cen = i_O17_cen_GE
+      i_O18_cen = i_O18_cen_GE
+      i_Ne20_cen = i_Ne20_cen_GE
+      i_Ne22_cen = i_Ne22_cen_GE
+      i_Al26_cen = i_Al26_cen_GE
+      i_Omega_surf = i_Omega_surf_GE
+      i_Omega_cen = i_Omega_cen_GE
+      i_oblat = i_oblat_GE
+      i_Mdot_enhencement = i_Mdot_enhencement_GE
+      i_v_crit1 = i_v_crit1_GE
+      i_v_crit2 = i_v_crit2_GE
+      i_v_equa = i_v_equa_GE
+      i_Omega_Omcrit = i_Omega_Omcrit_GE
+      i_Gamma_Ed = i_Gamma_Ed_GE
+      i_Mdot_mec = i_Mdot_mec_GE
+      i_L_tot = i_L_tot_GE
+    else if (MyFormat == 2) then
+    ! Starevol format
+      write(*,*) 'Done'
+    else
+      write(*,*) 'Problems with the requested format, aborting...'
+      stop
+    endif
+  
+  end subroutine Init_Indices
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine Init_TimeModel(Number_of_data,MyTimeModel)
+  ! Initiate the dimension of the TimeModel dynamically.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    implicit none
+      
+    integer, intent(in):: Number_of_data
+    type(type_TimeModel),intent(out)::MyTimeModel
+      
+    integer::i
+        
+    allocate(MyTimeModel%Data_Line(Number_of_data))
+      
+    do i=1,Number_of_data
+      MyTimeModel%Data_Line(i) = -1
+    enddo
+      
+    return
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  end subroutine Init_TimeModel
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine FillData(Z,Mini,Omini,FileNameIn,Structure)
     ! Read the evolution file and fill the structure.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -228,6 +328,7 @@ module VariousParameters
   implicit none
 
   integer,public,save:: star_number=1000                        ! Current numbe of star in the cluster.
+  integer,public,save:: table_format = 1                        ! Table format (1) GENEC, (2) Starevol
   integer,public,save::i_metallicity=0                          ! Metallicity distribution: dirac (0)
   integer,public,save::ivdist=1                                 ! Velocity distribution: uniform (0),
                                                                 ! huang(1), huang-gies(2), dirac_om(3)
@@ -791,7 +892,7 @@ contains
       i_N14_surf,i_O16_surf,i_O17_surf,i_O18_surf,i_Ne20_surf,i_Ne22_surf,i_Al26_surf,i_Mcc, &
       i_H1_cen,i_He4_cen,i_C12_cen,i_C13_cen,i_N14_cen,i_O16_cen,i_O17_cen,i_O18_cen,i_Ne20_cen, &
       i_Ne22_cen,i_Al26_cen,i_Omega_Omcrit,i_Gamma_Ed,i_Omega_surf,i_Mcc,i_oblat,i_v_equa,i_v_crit1,i_v_crit2, &
-      Init_DataStructure,Del_DataStructure
+      Init_DataStructure,Del_DataStructure,Data_Number,Table_Line_Number
     use VariousParameters, only:All_Data_Array,Z_Number
 
     implicit none
@@ -809,9 +910,9 @@ contains
     integer::i
     
     ! Initialisation of the intermediate structures used here:
-    call Init_DataStructure(400,New_Structure)
-    call Init_DataStructure(400,Structure_Below)
-    call Init_DataStructure(400,Structure_Above)
+    call Init_DataStructure(Table_Line_Number,Data_Number,New_Structure)
+    call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Below)
+    call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Above)
 
     ! The interpolation is done in the order: 1. omega interpolation, 2. mass interpolation (log) and 3. metallicity
     ! interpolation (log). If only one m/z/omega is present, no interpolation is needed (the check of the values
@@ -1031,7 +1132,7 @@ contains
     ! Perform the interpolation in mass.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only:type_DataStructure,i_mass,i_time,Init_DataStructure,Del_DataStructure
+    use DataStructure, only:type_DataStructure,i_mass,i_time,Init_DataStructure,Del_DataStructure,Table_Line_Number,Data_Number
     use VariousParameters, only:All_Data_Array,mass_Number_array
 
     implicit none
@@ -1044,8 +1145,8 @@ contains
     type(type_DataStructure)::Structure_Below,Structure_Above
 
     !Initialisation of the temporary structures:
-    call Init_DataStructure(400,Structure_Below)
-    call Init_DataStructure(400,Structure_Above)
+    call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Below)
+    call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Above)
     
         
     if (mass_Number_array(Z_coord) > 1) then
@@ -1161,7 +1262,8 @@ contains
     ! Find and interpolate the data at the given age of the cluster.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only: i_time,type_DataStructure,type_TimeModel,Table_Line_Number,i_Mdot,i_Mdot_mec
+    use DataStructure, only: i_time,type_DataStructure,type_TimeModel,Table_Line_Number,i_Mdot,i_Mdot_mec, &
+                             Data_Number,Init_TimeModel
 
     implicit none
 
@@ -1170,6 +1272,8 @@ contains
     type(type_TimeModel), intent(out)::CurrentTime_Line
 
     real(kind=8)::Current_Time
+    
+    call Init_TimeModel(Data_Number,CurrentTime_Line)
 
     ! Convert the current time in years.
     Current_Time = 10.d0**agelog
@@ -1213,7 +1317,7 @@ contains
 
     type(type_DataStructure),intent(in)::Interpolated_Model
     real(kind=8),intent(in)::time
-    type(type_TimeModel),intent(out)::CurrentTime_Line
+    type(type_TimeModel),intent(inout)::CurrentTime_Line
 
     ! Copy the header of the interpolated model in the current time model header
     CurrentTime_Line%Metallicity = Interpolated_Model%Metallicity
@@ -1245,7 +1349,7 @@ contains
 
     real(kind=8), intent(in):: Current_Time
     type(type_DataStructure), intent(in):: Interpolated_Model
-    type(type_TimeModel), intent(out):: CurrentTime_Line
+    type(type_TimeModel), intent(inout):: CurrentTime_Line
 
     integer:: i,Current_time_line_number
 
@@ -4056,7 +4160,7 @@ contains
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use VariousParameters, only:grid,m_IMF_inf,m_IMF_sup,i_Metallicity,fixed_metallicity,ivdist,om_ivdist,iangle, &
-      Fixed_AoV_latitude,grav_dark,limb_dark,binary_prob,inoise,sigma_mv,sigma_bv,Colour_Calibration_mode,PMS
+      Fixed_AoV_latitude,grav_dark,limb_dark,binary_prob,inoise,sigma_mv,sigma_bv,Colour_Calibration_mode,PMS,table_format
 
     implicit none
 
@@ -4077,6 +4181,13 @@ contains
        write(*,*) 'Grids: ',grid, 'without pre-MS'
     else
        write(*,*) 'Grids: ',grid, 'with pre-MS'
+    endif
+    if (table_format == 1) then
+       write(*,*) 'Tables are in GENEC format.'
+    else if (table_format == 2) then
+       write(*,*) 'Tables are in Starevol format.'
+    else
+       write(*,*) 'Problems with the table format, should be 1 or 2.'
     endif
     write(*,'(a,f6.2,a,f6.2,a)') ' -Salpeter IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
     write(*,*) 'Metallicity distribution :'
@@ -4231,7 +4342,7 @@ contains
     use VariousParameters, only:grid,star_number,m_IMF_inf,m_IMF_sup,m_IMF_inf_Grids2012, &
       m_IMF_sup_Grids2012,m_IMF_inf_BeGrids,m_IMF_sup_BeGrids,ivdist,om_ivdist,iangle, &
       Fixed_AoV_latitude,binary_prob,inoise,IMF_type,sigma_mv,sigma_bv,fixed_metallicity, &
-      Colour_Calibration_mode,grav_dark,limb_dark,PMS
+      Colour_Calibration_mode,grav_dark,limb_dark,PMS,table_format
 
     implicit none
 
@@ -4248,23 +4359,24 @@ contains
       write(*,*)
       write(*,*) 'Parameters you can change:'
       write(*,'(a,a)') '1. Grid                                     ',grid
+      write(*,'(a,l)') '2. Format of the tables                     ',table_format
       write(*,'(a,l)') '2. Tables with PMS                          ',PMS
-      write(*,'(a,i8)') '3. maximum number of star in the cluster  ',star_number
-      write(*,'(a,i5)') '4. IMF type                                  ',IMF_type
-      write(*,'(a,f6.2)') '5. minimum mass for IMF                     ',m_IMF_inf
-      write(*,'(a,f6.2)') '6. maximum mass for IMF                     ',m_IMF_sup
-      write(*,'(a,f6.4)') '7. metallicity                              ',fixed_metallicity
-      write(*,'(a,i5)') '8. angular velocity distribution             ',ivdist
-      write(*,'(a,f5.2)') '9. special angular velocity (ivdist=3)       ',om_ivdist
-      write(*,'(a,i5)') '10. angle of view distribution                ',iangle
-      write(*,'(a,f5.2)') '11. special angle of view (iangle=3)         ',Fixed_AoV_latitude
-      write(*,'(a,f5.2)') '12. probability of binarity                  ',binary_prob
-      write(*,'(a,i5)') '13. Colour - Teff calibration                ',Colour_Calibration_mode
-      write(*,'(a,i5)') '14. noise                                    ',inoise
-      write(*,'(a,f5.3)') '15. sigma in M_V                             ',sigma_mv
-      write(*,'(a,f5.3)') '16. sigma in B-V                             ',sigma_bv
-      write(*,'(a,i5)') '17. Gravity Darkening                        ',grav_dark
-      write(*,'(a,i5)') '18. Limb Darkening                           ',limb_dark
+      write(*,'(a,i8)') '4. maximum number of star in the cluster  ',star_number
+      write(*,'(a,i5)') '5. IMF type                                  ',IMF_type
+      write(*,'(a,f6.2)') '6. minimum mass for IMF                     ',m_IMF_inf
+      write(*,'(a,f6.2)') '7. maximum mass for IMF                     ',m_IMF_sup
+      write(*,'(a,f6.4)') '8. metallicity                              ',fixed_metallicity
+      write(*,'(a,i5)') '9. angular velocity distribution             ',ivdist
+      write(*,'(a,f5.2)') '10. special angular velocity (ivdist=3)       ',om_ivdist
+      write(*,'(a,i5)') '11. angle of view distribution                ',iangle
+      write(*,'(a,f5.2)') '12. special angle of view (iangle=3)         ',Fixed_AoV_latitude
+      write(*,'(a,f5.2)') '13. probability of binarity                  ',binary_prob
+      write(*,'(a,i5)') '14. Colour - Teff calibration                ',Colour_Calibration_mode
+      write(*,'(a,i5)') '15. noise                                    ',inoise
+      write(*,'(a,f5.3)') '16. sigma in M_V                             ',sigma_mv
+      write(*,'(a,f5.3)') '17. sigma in B-V                             ',sigma_bv
+      write(*,'(a,i5)') '18. Gravity Darkening                        ',grav_dark
+      write(*,'(a,i5)') '19. Limb Darkening                           ',limb_dark
       read(*,*) Change_Param
       select case(Change_Param)
         case(0)
@@ -4299,6 +4411,18 @@ contains
           endif
         case(2)
           Temp_Var_Int=10
+          do while (Temp_Var_Int /= 1 .or. Temp_Var_Int /= 2)
+            write(*,*) 'What is the wanted format for the tables?'
+            write(*,*) '1. GENEC format'
+            write(*,*) '2. Starevol format'
+            read(5,*) Temp_Var_Int
+            if (Temp_Var_Int /= 1 .or. Temp_Var_Int /= 2) then
+              write(*,*) 'Please enter 1 or 2.'
+            endif
+          enddo
+          table_format=Temp_Var_Int
+        case(3)
+          Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Tables with PMS ? (1) yes (0) no.'
             read(*,*) Temp_Var_Int
@@ -4311,10 +4435,10 @@ contains
           else
             PMS = .false.
           endif
-        case(3)
+        case(4)
           write(*,*) 'Number of stars in the synthetic cluster:'
           read(*,*) star_number
-        case(4)
+        case(5)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1)
             write(*,*) 'What do you want for the IMF?'
@@ -4325,7 +4449,7 @@ contains
             endif
           enddo
           IMF_type=Temp_Var_Int
-        case(5)
+        case(6)
           write(*,*) 'What do you want for minimal IMF mass ?'
           read(*,*) m_IMF_inf
           if (grid == "Grids2012" .and. m_IMF_inf < m_IMF_inf_Grids2012) then
@@ -4336,7 +4460,7 @@ contains
             write(*,*) "Minimal IMF mass too low for this grid, reset to ", m_IMF_inf_BeGrids," !"
             m_IMF_inf = m_IMF_inf_BeGrids
           endif
-        case(6)
+        case(7)
           write(*,*) 'What do you want for maximal IMF mass ?'
           read(*,*) m_IMF_sup
           if (grid == "Grids2012" .and. m_IMF_sup > m_IMF_sup_Grids2012) then
@@ -4347,7 +4471,7 @@ contains
             write(*,*) "Maximal IMF mass too high for this grid, reset to ", m_IMF_sup_BeGrids," !"
              m_IMF_sup = m_IMF_sup_BeGrids
           endif
-        case(7)
+        case(8)
           Temp_Var_real=-2.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'Value for the Dirac metallicity distribution :'
@@ -4357,7 +4481,7 @@ contains
             endif
           enddo
           fixed_metallicity=Temp_Var_real
-        case(8)
+        case(9)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. &
             Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
@@ -4374,7 +4498,7 @@ contains
             endif
           enddo
           ivdist=Temp_Var_Int
-        case(9)
+        case(10)
           Temp_Var_real=2.d0
           do while (Temp_Var_real > 1.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'Value for the Dirac velocity distribution :'
@@ -4384,7 +4508,7 @@ contains
             endif
           enddo
           om_ivdist=Temp_Var_real
-        case(10)
+        case(11)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /=2 .and. &
             Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
@@ -4401,7 +4525,7 @@ contains
             endif
           enddo
           iangle=Temp_Var_Int
-        case(11)
+        case(12)
           Temp_Var_real=100.d0
           do while (Temp_Var_real > 90.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'Angle of view of the Dirac distribution:'
@@ -4411,7 +4535,7 @@ contains
             endif
           enddo
           Fixed_AoV_latitude=Temp_Var_real
-        case(12)
+        case(13)
           Temp_Var_real=2.d0
           do while (Temp_Var_real > 1.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for binary probability ?'
@@ -4421,7 +4545,7 @@ contains
             endif
           enddo
           binary_prob=Temp_Var_real
-        case(13)
+        case(14)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Old calibration (grids 2011 paper I) (1) or Worthey & Lee, ApJS 193 1 (2011) (2) ?'
@@ -4431,7 +4555,7 @@ contains
             endif
           enddo
           Colour_Calibration_mode=Temp_Var_Int
-        case(14)
+        case(15)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Add noise ? (1) yes (0) no.'
@@ -4441,7 +4565,7 @@ contains
             endif
           enddo
           inoise=Temp_Var_Int
-        case(15)
+        case(16)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma M_V ?'
@@ -4451,7 +4575,7 @@ contains
             endif
           enddo
           sigma_mv=Temp_Var_real
-        case(16)
+        case(17)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma B-V'
@@ -4461,7 +4585,7 @@ contains
             endif
           enddo
           sigma_bv=Temp_Var_real
-        case(17)
+        case(18)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Gravity Darkening Correction ? (1) von Zeipel 1924 (2) Espinosa-Lara & Rieutord 2011.'
@@ -4471,7 +4595,7 @@ contains
             endif
           enddo
           grav_dark = Temp_Var_Int
-        case(18)
+        case(19)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Limb Darkening Correction ? (1) yes (0) no.'
@@ -4681,7 +4805,7 @@ contains
 
     use VariousParameters, only: Std_Path,Std_Path_tables,ListFileGrids2012,ListFileBeGrids,ListFileFastBe, &
       Z_Number,All_Data_Array,Z_List,mass_List,omega_list,mass_Number_array,omega_Number_array,grid
-    use DataStructure, only: FillData,verbose,Init_DataStructure
+    use DataStructure, only: FillData,verbose,Init_DataStructure,Table_Line_Number,Data_Number
 
     implicit none
 
@@ -4883,7 +5007,7 @@ contains
             write(*,'(a,f5.3,1x,f6.2,1x,f4.2)') 'Z,M,OOc: ',Z_initial,M_initial,omega_initial
             write(*,*) 'File ',trim(table_name)
           endif
-          call Init_DataStructure(400,All_Data_Array(i,j,k))
+          call Init_DataStructure(Table_Line_Number,Data_Number,All_Data_Array(i,j,k))
           call FillData(Z_initial,M_initial,omega_initial,table_name,All_Data_Array(i,j,k))
         enddo
       enddo
@@ -5114,6 +5238,8 @@ contains
     end select
 
     close(50)
+    
+    deallocate(CurrentTime_Model)
 
     return
 
@@ -5472,8 +5598,8 @@ contains
     ! Initialisations of some parameters
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only: Table_Line_Number,Table_Line_Number_normal,Table_Line_Number_PMS
-    use VariousParameters, only:m_IMF_inf,m_IMF_sup,star_number,Comp_Mode,age_log,PMS
+    use DataStructure, only: Table_Line_Number,Table_Line_Number_normal,Table_Line_Number_PMS,Init_Indices
+    use VariousParameters, only:m_IMF_inf,m_IMF_sup,star_number,Comp_Mode,age_log,PMS,table_format
     use LoopVariables, only:CurrentTime_Model
 
     implicit none
@@ -5494,6 +5620,9 @@ contains
     else
       Table_Line_Number = Table_Line_Number_normal
     endif
+    
+    ! Initialissation of the indices.
+    call Init_Indices(table_format)
 
     select case (Comp_Mode)
       case (1)
@@ -5772,7 +5901,7 @@ module Configuration_File
 
   use VariousParameters, only: grid,star_number,i_metallicity,ivdist,iangle,inoise,IMF_type,Fixed_AoV_latitude, &
     m_IMF_inf,m_IMF_sup,fixed_metallicity,om_ivdist,binary_prob,sigma_mv,sigma_bv, &
-    Colour_Calibration_mode, limb_dark,grav_dark,PMS
+    Colour_Calibration_mode, limb_dark,grav_dark,PMS,table_format
   use Population_Mode, only: Pop_Mass_Beam_Number,Pop_Omega_Beam_Number,N_Time_step
 
   implicit none
@@ -5832,6 +5961,10 @@ contains
     read(Unit_Config_File,'(8x,a)',iostat=ierror) grid
     if (ierror /= 0) then
       grid = 'BeGrids'
+    endif
+    read(Unit_Config_File,'(16x,i1)',iostat=ierror) table_format
+    if (ierror /= 0) then
+      table_format = 1
     endif
     read(Unit_Config_File,'(8x,l)',iostat=ierror) PMS
     if (ierror /= 0) then
@@ -5947,7 +6080,8 @@ contains
     write(Unit_Config_File,'(a)') '*******************************'
 
     write(Unit_Config_File,'(a,2x,a)') 'Grid: ', grid
-    write(Unit_Config_File,'(a,2x,l)') 'PMS: ',PMS
+    write(Unit_Config_File,'(a,2x,i1)') 'Table format: ',table_format
+    write(Unit_Config_File,'(a,2x,l)') 'PMS:  ',PMS
     write(Unit_Config_File,'(a,2x,i9)') 'Star Number: ',star_number
     write(Unit_Config_File,'(a,2x,i1)') 'Metallicity distribution: ',i_metallicity
     write(Unit_Config_File,'(a,2x,f6.4)') 'Metallicity: ', fixed_metallicity
