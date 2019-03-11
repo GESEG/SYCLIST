@@ -174,6 +174,7 @@ os.system(MoveFile)
 os.system('rm TempFile.txt')
 
 os.chdir(start_dir)
+print '***** Cluster for '+user_name+' computed *****'
 print '-----------------------------------------------------------------'
 print 'Dear SYCLIST user,\n'
 print 'Please find below the cluster you requested on ',request_date.strftime('%a %d %b %Y at %H:%M:%S'),' (CET).\n'
