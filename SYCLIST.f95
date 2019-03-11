@@ -76,17 +76,17 @@ contains
   subroutine Init_DataStructure(Number_of_lines,Number_of_data,MyDataStructure)
   ! Initiate the dimension of the DataStructure dynamically.
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     implicit none
-    
+
     integer, intent(in):: Number_of_lines,Number_of_data
     type(type_DataStructure),intent(out)::MyDataStructure
-    
+
     integer::i,j
-        
+
     allocate(MyDataStructure%line(Number_of_lines))
     allocate(MyDataStructure%Data_Table(Number_of_lines,Number_of_data))
-      
+
     do i=1,Number_of_lines
       MyDataStructure%line(i) = -1
     enddo
@@ -95,25 +95,25 @@ contains
         MyDataStructure%Data_Table(i,j) = -10.d0
       enddo
     enddo
-        
+
     return
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   end subroutine Init_DataStructure
-  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-    
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine Del_DataStructure(MyDataStructure)
   ! Delete DataStructure arrays.
-  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     implicit none
-    
+
     type(type_DataStructure),intent(inout)::MyDataStructure
-    
+
     deallocate(MyDataStructure%line)
-    deallocate(MyDataStructure%Data_Table)      
-  
+    deallocate(MyDataStructure%Data_Table)
+
   end subroutine Del_DataStructure
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -121,11 +121,11 @@ contains
   subroutine Init_Indices(MyFormat)
   ! Delete DataStructure arrays.
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      
+
     implicit none
-      
+
     integer,intent(in):: MyFormat
-    
+
     if (MyFormat == 1) then
     ! GENEC format
       Data_Number = Data_Number_GE
@@ -178,7 +178,7 @@ contains
       write(*,*) 'Problems with the requested format, aborting...'
       stop
     endif
-  
+
   end subroutine Init_Indices
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -186,26 +186,26 @@ contains
   subroutine Init_TimeModel(Number_of_data,MyTimeModel)
   ! Initiate the dimension of the TimeModel dynamically.
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     implicit none
-      
+
     integer, intent(in):: Number_of_data
     type(type_TimeModel),intent(out)::MyTimeModel
-      
+
     integer::i
-        
+
     allocate(MyTimeModel%Data_Line(Number_of_data))
-      
+
     do i=1,Number_of_data
       MyTimeModel%Data_Line(i) = -1
     enddo
-      
+
     return
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   end subroutine Init_TimeModel
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine FillData(Z,Mini,Omini,FileNameIn,Structure)
     ! Read the evolution file and fill the structure.
@@ -908,7 +908,7 @@ contains
     type(type_DataStructure)::Structure_Below,Structure_Above
 
     integer::i
-    
+
     ! Initialisation of the intermediate structures used here:
     call Init_DataStructure(Table_Line_Number,Data_Number,New_Structure)
     call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Below)
@@ -1117,11 +1117,11 @@ contains
         New_Structure%Data_Table(i,i_v_crit2) = 0.d0
       endif
     enddo
-    
+
     ! Delete intermediate strutures:
     call Del_DataStructure(Structure_Below)
     call Del_DataStructure(Structure_Above)
-    
+
     return
 
   end subroutine Make_InterpolatedModel
@@ -1147,8 +1147,8 @@ contains
     !Initialisation of the temporary structures:
     call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Below)
     call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Above)
-    
-        
+
+
     if (mass_Number_array(Z_coord) > 1) then
       ! Enough masses to perform interpolation.
       if (Mass_factor == 1.d0) then
@@ -1272,7 +1272,7 @@ contains
     type(type_TimeModel), intent(out)::CurrentTime_Line
 
     real(kind=8)::Current_Time
-    
+
     call Init_TimeModel(Data_Number,CurrentTime_Line)
 
     ! Convert the current time in years.
@@ -1897,7 +1897,7 @@ contains
 
     Model%Additional_Data_Line(i_Mbol) = -2.5d0*Model%Additional_Data_Line(i_L) + 4.75d0
     Model%Additional_Data_Line(i_MV) = -2.5d0*Model%Additional_Data_Line(i_L)+4.75d0-Model%Additional_Data_Line(i_BC)
-    
+
     ! Computation of the Gaia colours according to the DR2 (Evans et al. 2018, arXiv 1804.09368). In case
     ! the data are off the recommended values for V-I, we set the flag to 1:
     Model%Additional_Data_Line(i_GV)   = -0.01746d0 + 0.008092d0*Model%Additional_Data_Line(i_VI) &
@@ -5239,7 +5239,7 @@ contains
     end select
 
     close(50)
-    
+
     deallocate(CurrentTime_Model)
 
     return
@@ -5614,14 +5614,14 @@ contains
     Cluster_mass = 0.d0
 
     Compute = .true.
-    
+
     !Initialise parameters depending on PMS in the tables or not.
     if (PMS) then
       Table_Line_Number = Table_Line_Number_PMS
     else
       Table_Line_Number = Table_Line_Number_normal
     endif
-    
+
     ! Initialissation of the indices.
     call Init_Indices(table_format)
 
@@ -5967,7 +5967,7 @@ contains
     if (ierror /= 0) then
       table_format = 1
     endif
-    read(Unit_Config_File,'(8x,l)',iostat=ierror) PMS
+    read(Unit_Config_File,'(8x,l1)',iostat=ierror) PMS
     if (ierror /= 0) then
       PMS = .false.
     endif
@@ -6082,7 +6082,7 @@ contains
 
     write(Unit_Config_File,'(a,2x,a)') 'Grid: ', grid
     write(Unit_Config_File,'(a,2x,i1)') 'Table format: ',table_format
-    write(Unit_Config_File,'(a,2x,l)') 'PMS:  ',PMS
+    write(Unit_Config_File,'(a,2x,l1)') 'PMS:  ',PMS
     write(Unit_Config_File,'(a,2x,i9)') 'Star Number: ',star_number
     write(Unit_Config_File,'(a,2x,i1)') 'Metallicity distribution: ',i_metallicity
     write(Unit_Config_File,'(a,2x,f6.4)') 'Metallicity: ', fixed_metallicity
@@ -6183,7 +6183,7 @@ program PopStarII
 
   ! Save the configuration file
   call Write_Config
-  
+
   ! Delete the arrays:
   do i=1,Z_Number
     do j=1,mass_Number_array(i)
