@@ -169,6 +169,8 @@ if not too_old and not too_young:
     ConfigFile.write('Do not edit unless knowing what you are doing !\n')
     ConfigFile.write('*******************************\n')
     ConfigFile.write('Grid:   '+grids+'\n')
+    ConfigFile.write('Table format: 1\n')
+    ConfigFile.write('PMS:  F\n')
     ConfigFile.write('Star Number:   %9d'%star_number+'\n')
     ConfigFile.write('Metallicity distribution:   0\n')
     ConfigFile.write('Metallicity:   '+str(metallicity)+'\n')
@@ -208,6 +210,7 @@ if not too_old and not too_young:
     os.system('rm TempFile.txt')
 
 os.chdir(start_dir)
+print '***** Cluster for '+user_name+' computed *****'
 print '-----------------------------------------------------------------'
 print 'Dear SYCLIST user,\n'
 if not too_old and not too_young:
