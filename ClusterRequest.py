@@ -208,6 +208,7 @@ if not too_old and not too_young:
     os.system('rm TempFile.txt')
 
 os.chdir(start_dir)
+print '***** Cluster for '+user_name+' computed *****'
 print '-----------------------------------------------------------------'
 print 'Dear SYCLIST user,\n'
 if not too_old and not too_young:
