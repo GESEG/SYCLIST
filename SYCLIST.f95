@@ -4436,7 +4436,7 @@ contains
     ! Ask if parameters are changed or not.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use VariousParameters, only: Comp_Mode
+    use VariousParameters, only: Comp_Mode,table_format
 
     implicit none
 
@@ -4463,6 +4463,11 @@ contains
       write(*,*) '(3) Computation of a stellar population as a function of time'
       write(*,*) '(4) Computation of a single stellar model'
       read(5,*) Comp_Mode
+      ! Starevol format not yet usable with population mode.
+      if (Comp_Mode == 3 .and. table_format == 2) then
+        write(*,*) 'This mode is not yet available for starevol formats. Chose another one'
+        Comp_Mode = -1
+      endif
     enddo
 
     select case (Comp_Mode)
@@ -5214,7 +5219,10 @@ contains
       Output_Format_SE= '(f7.3,2x,f8.6,2x,f5.3,2x,3(1x,f9.6),1x,f13.8,1x,f11.5,1x,f5.2,1x,e10.3,&
       &1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),16(1x,e11.4),1x,&
       &e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),52(1x,e11.4))', &
-      Output_Format_Cluster= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
+      Output_Format_Cluster_GE= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
+                                         &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
+                                         &f7.3,2x,f6.4,11(2x,e9.3))', &
+      Output_Format_Cluster_SE= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
                                          &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
                                          &f7.3,2x,f6.4,11(2x,e9.3))', &
       Output_Format_Single_GE = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
@@ -5256,23 +5264,31 @@ contains
                          &          WNL          WNE           WC           WO     Cepheids Cepheid_norm&
                          &  4<L_RSG<4.5  4.5<L_RSG<5  5<L_RSG<5.5  5.5<L_RSG<6          BSG      early B&
                          & early B > 80   MS 2mag<TO         Mtot', &
-      Header_Cluster = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
-                         &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
-                         &        MV       U-B       B-V       V-R       V-I&
-                         &       J-K       H-K       V-K     MV_n     B-V_n&
-                         &       G-V     Gbp-V     Grp-V     G_flag&
-                         &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
-                         &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
-                         &        O17        O18       Ne20       Ne22       Al26'
+      Header_Cluster_GE = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
+                           &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
+                           &        MV       U-B       B-V       V-R       V-I&
+                           &       J-K       H-K       V-K     MV_n     B-V_n&
+                           &       G-V     Gbp-V     Grp-V     G_flag&
+                           &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
+                           &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
+                           &        O17        O18       Ne20       Ne22       Al26', &
+      Header_Cluster_SE = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
+                           &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
+                           &        MV       U-B       B-V       V-R       V-I&
+                           &       J-K       H-K       V-K     MV_n     B-V_n&
+                           &       G-V     Gbp-V     Grp-V     G_flag&
+                           &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
+                           &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
+                           &        O17        O18       Ne20       Ne22       Al26'
 
     character(1)::Answer = 'k'
     character(256)::Output_FileName,formatPop
-    character(512)::Output_Format,Output_Format_Single
-    character(2048)::Header
+    character(512)::Output_Format,Output_Format_Single,Output_Format_Cluster
+    character(2048)::Header,Header_Cluster
     
-    integer:: DataToPrint_Single = -1, DataToPrint_Iso = -1, bigswitch = -1
-    integer,parameter:: DataToPrint_Single_GE = 58,DataToPrint_Iso_GE = 43
-    integer,parameter:: DataToPrint_Single_SE = 133,DataToPrint_Iso_SE = 135
+    integer:: DataToPrint_Single = -1, DataToPrint_Iso = -1, DataToPrint_Cluster = -1, bigswitch = -1
+    integer,parameter:: DataToPrint_Single_GE = 58,DataToPrint_Iso_GE = 43,DataToPrint_Cluster_GE = 51
+    integer,parameter:: DataToPrint_Single_SE = 133,DataToPrint_Iso_SE = 135,DataToPrint_Cluster_SE = 137
     
     real(kind=8),dimension(:,:),allocatable::TableToPrint
         
@@ -5282,16 +5298,23 @@ contains
       ! GENEC output
         Output_Format = Output_Format_GE
         Output_Format_Single = Output_Format_Single_GE
+        Output_Format_Cluster = Output_Format_Cluster_GE
         DataToPrint_Single = DataToPrint_Single_GE
         DataToPrint_Iso = DataToPrint_Iso_GE
+        DataToPrint_Cluster = DataToPrint_Cluster_GE
         Header = Header_GE
+        Header_Cluster = Header_Cluster_GE
+        write(formatPop,'(a,i2,a)') '(es10.4,',Evolutionary_Values,'(3x,es10.4))'
       case (2)
       ! Starevol output
         Output_Format = Output_Format_SE
         Output_Format_Single = Output_Format_Single_SE
+        Output_Format_Cluster = Output_Format_Cluster_SE
         DataToPrint_Single = DataToPrint_Single_SE
         DataToPrint_Iso = DataToPrint_Iso_SE
+        DataToPrint_Cluster = DataToPrint_Cluster_SE
         Header = Header_SE
+        Header_Cluster = Header_Cluster_SE
       case default
         write(*,*) 'Unexpected problem in writing format. Check.'
         stop
@@ -5303,7 +5326,37 @@ contains
     bigswitch = 4*(write_mode-1)+Comp_Mode
     select case (bigswitch)
       case (1) ! GENEC cluster
-        allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
+        allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,90.d0-CurrentTime_Model(i)%Angle_of_View*180.d0/pi, &
+            CurrentTime_Model(i)%mass_ratio, &
+            CurrentTime_Model(i)%Data_Line(i_mass),CurrentTime_Model(i)%Data_Line(i_logL), &
+            CurrentTime_Model(i)%Data_Line(i_logTeff_corr),CurrentTime_Model(i)%Data_Line(i_logTeff), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VK),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_BV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius),CurrentTime_Model(i)%Data_Line(i_oblat), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_mean_gravity)), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
+            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
+            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
+            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
+            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Al26_Surf)/)
+        enddo
       case (2) ! GENEC isochrone
         allocate(TableToPrint(Current_Number,DataToPrint_Iso))
         do i=1,Current_Number
@@ -5332,7 +5385,11 @@ contains
             CurrentTime_Model(i)%Data_Line(i_Al26_Surf)/)
         enddo
       case (3) ! GENEC population
-        allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
+        allocate(TableToPrint(N_Time_step,size(Evolution_Data,2)+1))
+        do i=1,N_Time_step
+          TableToPrint(i,:) = (/time_step_array(i),Evolution_Data(i,:)/)
+        enddo
+
       case (4) ! GENEC single model
         allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
         do i=1,Table_Line_Number
@@ -5361,7 +5418,8 @@ contains
             CurrentTime_Model(i)%Omega_Omcrit_ini,(CurrentTime_Model(i)%Data_Line(j),j=2,DataToPrint_Single)/)
         enddo
       case (7) ! starevol population
-        allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
+        write(*,*) 'This should not occur. Check input parameters'
+        stop
       case (8) ! starevol single model
         allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
         do i=1,Table_Line_Number
@@ -5421,37 +5479,10 @@ contains
       case (1)
         write(50,'(a)') 'WARNING: Note that in case of binary star, the B2-V1 color and the Teff are NOT the composite&
                     & one, but only the primary ones !'
-        write(50,'(a)') Header_Cluster
+        write(50,'(a)') trim(Header_Cluster)
         write(50,*)
         do i=1,Current_Number
-          write(50,Output_Format_Cluster) CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
-            CurrentTime_Model(i)%Omega_Omcrit_ini,90.d0-CurrentTime_Model(i)%Angle_of_View*180.d0/pi, &
-            CurrentTime_Model(i)%Is_a_Binary,CurrentTime_Model(i)%mass_ratio, &
-            CurrentTime_Model(i)%Data_Line(i_mass),CurrentTime_Model(i)%Data_Line(i_logL), &
-            CurrentTime_Model(i)%Data_Line(i_logTeff_corr),CurrentTime_Model(i)%Data_Line(i_logTeff), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_VK),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_BV_noisy), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius),CurrentTime_Model(i)%Data_Line(i_oblat), &
-            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
-            log10(CurrentTime_Model(i)%Additional_Data_Line(i_mean_gravity)), &
-            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
-            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
-            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
-            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
-            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
-            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_Al26_Surf)
+          write(50,trim(Output_Format_Cluster)) TableToPrint(i,:4),CurrentTime_Model(i)%Is_a_Binary,TableToPrint(i,5:)
         enddo
 
       case(2)
@@ -5462,9 +5493,9 @@ contains
         enddo
       case (3)
         write(50,'(a)') Header_Be
-        write(formatPop,'(a,i2,a)') '(es10.4,',Evolutionary_Values,'(3x,es10.4))'
+        
         do i=1,N_Time_step
-          write(50,trim(formatPop)) time_step_array(i),Evolution_Data(i,:)
+          write(50,trim(formatPop)) TableToPrint(i,:)
         enddo
 
       case (4)
