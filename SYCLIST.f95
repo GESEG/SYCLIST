@@ -8,10 +8,11 @@ module DataStructure
   integer,parameter,public::Table_Line_Number_normal = 400
   integer,parameter,public::Table_Line_Number_PMS = 500
   integer,public,save::Table_Line_Number = 400
-  integer,parameter,private::Data_Number_GE = 42   ! WARNING : adapt this value to the number of data hereafter:
+  integer,parameter,private::Data_Number_GE = 42    ! WARNING : adapt this value to the number of data hereafter:
+  integer,parameter,private::Data_Number_SE = 133   ! WARNING : adapt this value to the number of data hereafter:
   integer,public::Data_Number = -1
   integer,parameter,private::i_time_GE=1,i_mass_GE=2,i_logL_GE=3,i_logTeff_corr_GE=4, &
-    i_H1_Surf_GE=5,i_He4_surf_GE=6,i_C12_surf_GE=7,i_C13_surf_GE=8,i_N14_surf_GE=9, &
+    i_H1_surf_GE=5,i_He4_surf_GE=6,i_C12_surf_GE=7,i_C13_surf_GE=8,i_N14_surf_GE=9, &
     i_O16_surf_GE=10,i_O17_surf_GE=11,i_O18_surf_GE=12,i_Ne20_surf_GE=13,i_Ne22_surf_GE=14, &
     i_Al26_surf_GE=15,i_Mcc_GE=16,i_logTeff_GE=17,i_Mdot_GE=18,i_rhoc_GE=19,i_Tc_GE=20, &
     i_H1_cen_GE=21,i_He4_cen_GE=22,i_C12_cen_GE=23,i_C13_cen_GE=24,i_N14_cen_GE=25, &
@@ -19,6 +20,30 @@ module DataStructure
     i_Al26_cen_GE=31,i_Omega_surf_GE=32,i_Omega_cen_GE=33,i_oblat_GE=34,i_Mdot_enhencement_GE=35, &
     i_v_crit1_GE=36,i_v_crit2_GE=37,i_v_equa_GE=38,i_Omega_Omcrit_GE=39,i_Gamma_Ed_GE=40, &
     i_Mdot_mec_GE=41,i_L_tot_GE=42
+  integer,parameter,private::i_time_SE=1,i_logTeff_SE=2,i_logL_SE=3,i_logLgrav_SE=4, &
+    i_mass_SE=5,i_R_SE=6,i_logg_SE=7,i_logrhophot_SE=8,i_Mdot_SE=9,i_Tc_SE=10,i_Pc_SE=11, &
+    i_rhoc_SE=12,i_logTmax_SE=13,i_MTmax_SE=14,i_logrhoTmax_SE=15,i_epsnucl_SE=16,i_epsgrav_SE=17, &
+    i_epsnu_SE=18,i_MrbCE_SE=19,i_RbCE_SE=20,i_logTbCE_SE=21,i_logrhobCE_SE=22,i_MrtCC_SE=23, &
+    i_RtCC_SE=24,i_logTtCC_SE=25,i_logrhotCC_SE=26,i_Taumax_SE=27,i_Romax_SE=28,i_Taug_SE=29, &
+    i_Rog_SE=30,i_TauHp2_SE=31,i_RoHp2_SE=32,i_TauHp_SE=33,i_RoHp_SE=34,i_TauR2_SE=35,i_RoR2_SE=36, &
+    i_TauM2_SE=37,i_RoM2_SE=38,i_k2conv_SE=39,i_k2rad_SE=40,i_Omega_surf_SE=41,i_Omega_cen_SE=42, &
+    i_v_equa_SE=43,i_Prot_SE=44,i_Jact_SE=45,i_Jcore_SE=46,i_Omega_Omcrit_SE=47,i_v_crit1_SE=48, &
+    i_torque_SE=49,i_Bequi_SE=50,i_Dnu_SE=51,i_Dnuech_SE=52,i_Dnuerr_SE=53,i_numax_SE=54, &
+    i_dPiasym_SE=55,i_Racctot_SE=56,i_RaccbCE_SE=57,i_RaccHe_SE=58,i_MBolT_SE=59,i_BCT_SE=60, &
+    i_UBT_SE=61,i_BVT_SE=62,i_VRT_SE=63,i_VIT_SE=64,i_JKT_SE=65,i_HKT_SE=66,i_VKT_SE=67, &
+    i_GVT_SE=68,i_GbpVT_SE=69,i_GrpVT_SE=70,i_MUT_SE=71,i_MBT_SE=72,i_M_VT_SE=73,i_M_RT_SE=74, &
+    i_M_IT_SE=75,i_M_HT_SE=76,i_M_JT_SE=77,i_M_KT_SE=78,i_M_GT_SE=79,i_M_GbpT_SE=80, &
+    i_M_GrpT_SE=81,i_H1_surf_SE=82,i_H2_surf_SE=83,i_He3_surf_SE=84,i_He4_surf_SE=85, &
+    i_Li6_surf_SE=86,i_Li7_surf_SE=87,i_Be7_surf_SE=88,i_Be9_surf_SE=89,i_B10_surf_SE=90, &
+    i_B11_surf_SE=91,i_C12_surf_SE=92,i_C13_surf_SE=93,i_C14_surf_SE=94,i_N14_surf_SE=95, &
+    i_N15_surf_SE=96,i_O16_surf_SE=97,i_O17_surf_SE=98,i_O18_surf_SE=99,i_F19_surf_SE=100, &
+    i_Ne20_surf_SE=101,i_Ne21_surf_SE=102,i_Ne22_surf_SE=103,i_Na23_surf_SE=104,i_Mg24_surf_SE=105, &
+    i_Mg25_surf_SE=106,i_Mg26_surf_SE=107,i_Al26_surf_SE=108,i_Al27_surf_SE=109,i_Si28_surf_SE=110, &
+    i_H1_cen_SE=111,i_H2_cen_SE=112,i_He3_cen_SE=113,i_He4_cen_SE=114,i_C12_cen_SE=115, &
+    i_C13_cen_SE=116,i_C14_cen_SE=117,i_N14_cen_SE=118,i_N15_cen_SE=119,i_O16_cen_SE=120, &
+    i_O17_cen_SE=121,i_O18_cen_SE=122,i_F19_cen_SE=123,i_Ne20_cen_SE=124,i_Ne21_cen_SE=125, &
+    i_Ne22_cen_SE=126,i_Na23_cen_SE=127,i_Mg24_cen_SE=128,i_Mg25_cen_SE=129,i_Mg26_cen_SE=130, &
+    i_Al26_cen_SE=131,i_Al27_cen_SE=132,i_Si28_cen_SE=133
   integer,public::i_time=-1,i_mass=-1,i_logL=-1,i_logTeff_corr=-1, &
     i_H1_Surf=-1,i_He4_surf=-1,i_C12_surf=-1,i_C13_surf=-1,i_N14_surf=-1, &
     i_O16_surf=-1,i_O17_surf=-1,i_O18_surf=-1,i_Ne20_surf=-1,i_Ne22_surf=-1, &
@@ -27,16 +52,72 @@ module DataStructure
     i_O16_cen=-1,i_O17_cen=-1,i_O18_cen=-1,i_Ne20_cen=-1,i_Ne22_cen=-1, &
     i_Al26_cen=-1,i_Omega_surf=-1,i_Omega_cen=-1,i_oblat=-1,i_Mdot_enhencement=-1, &
     i_v_crit1=-1,i_v_crit2=-1,i_v_equa=-1,i_Omega_Omcrit=-1,i_Gamma_Ed=-1, &
-    i_Mdot_mec=-1,i_L_tot=-1
+    i_Mdot_mec=-1,i_L_tot=-1,i_logLgrav=-1,i_R=-1,i_logg=-1,i_logrhophot=-1, &
+    i_Pc=-1,i_logTmax=-1,i_MTmax=-1,i_logrhoTmax=-1, &
+    i_epsnucl=-1,i_epsgrav=-1,i_epsnu=-1,i_MrbCE=-1,i_RbCE=-1,i_logTbCE=-1, &
+    i_logrhobCE=-1,i_MrtCC=-1,i_RtCC=-1,i_logTtCC=-1,i_logrhotCC=-1,i_Taumax=-1, &
+    i_Romax=-1,i_Taug=-1,i_Rog=-1,i_TauHp2=-1,i_RoHp2=-1,i_TauHp=-1,i_RoHp=-1,i_TauR2=-1, &
+    i_RoR2=-1,i_TauM2=-1,i_RoM2=-1,i_k2conv=-1,i_k2rad=-1,i_Prot=-1,i_Jact=-1,i_Jcore=-1, &
+    i_torque=-1,i_Bequi=-1,i_Dnu=-1,i_Dnuech=-1,i_Dnuerr=-1,i_numax=-1,i_dPiasym=-1, &
+    i_Racctot=-1,i_RaccbCE=-1,i_RaccHe=-1,i_MBolT=-1,i_BCT=-1,i_UBT=-1,i_BVT=-1,i_VRT=-1, &
+    i_VIT=-1,i_JKT=-1,i_HKT=-1,i_VKT=-1,i_GVT=-1,i_GbpVT=-1,i_GrpVT=-1,i_MUT=-1,i_MBT=-1, &
+    i_M_VT=-1,i_M_RT=-1,i_M_IT=-1,i_M_HT=-1,i_M_JT=-1,i_M_KT=-1,i_M_GT=-1,i_M_GbpT=-1, &
+    i_M_GrpT=-1,i_H2_surf=-1,i_He3_surf=-1,i_Li6_surf=-1,i_Li7_surf=-1,i_Be7_surf=-1, &
+    i_Be9_surf=-1,i_B10_surf=-1,i_B11_surf=-1,i_C14_surf=-1,i_N15_surf=-1,i_F19_surf=-1, &
+    i_Ne21_surf=-1,i_Na23_surf=-1,i_Mg24_surf=-1,i_Mg25_surf=-1,i_Mg26_surf=-1, &
+    i_Al27_surf=-1,i_Si28_surf=-1,i_H2_cen=-1,i_He3_cen=-1,i_C14_cen=-1,i_N15_cen=-1, &
+    i_F19_cen=-1,i_Ne21_cen=-1,i_Na23_cen=-1,i_Mg24_cen=-1,i_Mg25_cen=-1,i_Mg26_cen=-1, &
+    i_Al27_cen=-1,i_Si28_cen=-1
+  integer,dimension(33),private::positive_GE=(/i_H1_surf_GE,i_He4_surf_GE,i_C12_surf_GE, &
+    i_C13_surf_GE,i_N14_surf_GE,i_O16_surf_GE,i_O17_surf_GE,i_O18_surf_GE,i_Ne20_surf_GE, &
+    i_Ne22_surf_GE,i_Al26_surf_GE,i_Mcc_GE,i_H1_cen_GE,i_He4_cen_GE,i_C12_cen_GE, &
+    i_C13_cen_GE,i_N14_cen_GE,i_O16_cen_GE,i_O17_cen_GE,i_O18_cen_GE,i_Ne20_cen_GE, &
+    i_Ne22_cen_GE,i_Al26_cen_GE,i_Omega_surf_GE,i_Omega_cen_GE,i_oblat_GE, &
+    i_Mdot_enhencement_GE,i_v_crit1_GE,i_v_crit2_GE,i_v_equa_GE,i_Omega_Omcrit_GE, &
+    i_Gamma_Ed_GE,i_L_tot_GE/)
+  integer,dimension(25),private::less_than_one_GE=(/i_H1_surf_GE,i_He4_surf_GE,i_C12_surf_GE, &
+    i_C13_surf_GE,i_N14_surf_GE,i_O16_surf_GE,i_O17_surf_GE,i_O18_surf_GE,i_Ne20_surf_GE, &
+    i_Ne22_surf_GE,i_Al26_surf_GE,i_Mcc_GE,i_H1_cen_GE,i_He4_cen_GE,i_C12_cen_GE, &
+    i_C13_cen_GE,i_N14_cen_GE,i_O16_cen_GE,i_O17_cen_GE,i_O18_cen_GE,i_Ne20_cen_GE, &
+    i_Ne22_cen_GE,i_Al26_cen_GE,i_oblat_GE,i_Omega_Omcrit_GE/)
+  integer,dimension(74),private::positive_SE=(/i_MrbCE_SE,i_RbCE_SE,i_MrtCC_SE,i_RtCC_SE, &
+    i_Taumax_SE,i_Romax_SE,i_Taug_SE,i_Rog_SE,i_TauHp2_SE,i_RoHp2_SE,i_TauHp_SE,i_RoHp_SE, &
+    i_TauR2_SE,i_RoR2_SE,i_TauM2_SE,i_RoM2_SE,i_Omega_surf_SE,i_Omega_cen_SE,i_v_equa_SE, &
+    i_Prot_SE,i_Omega_Omcrit_SE,i_v_crit1_SE,i_H1_surf_SE,i_H2_surf_SE,i_He3_surf_SE, &
+    i_He4_surf_SE,i_Li6_surf_SE,i_Li7_surf_SE,i_Be7_surf_SE,i_Be9_surf_SE,i_B10_surf_SE, &
+    i_B11_surf_SE,i_C12_surf_SE,i_C13_surf_SE,i_C14_surf_SE,i_N14_surf_SE,i_N15_surf_SE, &
+    i_O16_surf_SE,i_O17_surf_SE,i_O18_surf_SE,i_F19_surf_SE,i_Ne20_surf_SE,i_Ne21_surf_SE, &
+    i_Ne22_surf_SE,i_Na23_surf_SE,i_Mg24_surf_SE,i_Mg25_surf_SE,i_Mg26_surf_SE,i_Al26_surf_SE, &
+    i_Al27_surf_SE,i_Si28_surf_SE,i_H1_cen_SE,i_H2_cen_SE,i_He3_cen_SE,i_He4_cen_SE,i_C12_cen_SE, &
+    i_C13_cen_SE,i_C14_cen_SE,i_N14_cen_SE,i_N15_cen_SE,i_O16_cen_SE,i_O17_cen_SE,i_O18_cen_SE, &
+    i_F19_cen_SE,i_Ne20_cen_SE,i_Ne21_cen_SE,i_Ne22_cen_SE,i_Na23_cen_SE,i_Mg24_cen_SE, &
+    i_Mg25_cen_SE,i_Mg26_cen_SE,i_Al26_cen_SE,i_Al27_cen_SE,i_Si28_cen_SE/)
+  integer,dimension(53),private::less_than_one_SE=(/i_Omega_Omcrit_SE,i_H1_surf_SE,i_H2_surf_SE, &
+    i_He3_surf_SE,i_He4_surf_SE,i_Li6_surf_SE,i_Li7_surf_SE,i_Be7_surf_SE,i_Be9_surf_SE, &
+    i_B10_surf_SE,i_B11_surf_SE,i_C12_surf_SE,i_C13_surf_SE,i_C14_surf_SE,i_N14_surf_SE, &
+    i_N15_surf_SE,i_O16_surf_SE,i_O17_surf_SE,i_O18_surf_SE,i_F19_surf_SE,i_Ne20_surf_SE, &
+    i_Ne21_surf_SE,i_Ne22_surf_SE,i_Na23_surf_SE,i_Mg24_surf_SE,i_Mg25_surf_SE,i_Mg26_surf_SE, &
+    i_Al26_surf_SE,i_Al27_surf_SE,i_Si28_surf_SE,i_H1_cen_SE,i_H2_cen_SE,i_He3_cen_SE, &
+    i_He4_cen_SE,i_C12_cen_SE,i_C13_cen_SE,i_C14_cen_SE,i_N14_cen_SE,i_N15_cen_SE,i_O16_cen_SE, &
+    i_O17_cen_SE,i_O18_cen_SE,i_F19_cen_SE,i_Ne20_cen_SE,i_Ne21_cen_SE,i_Ne22_cen_SE, &
+    i_Na23_cen_SE,i_Mg24_cen_SE,i_Mg25_cen_SE,i_Mg26_cen_SE,i_Al26_cen_SE,i_Al27_cen_SE, &
+    i_Si28_cen_SE/)
+  integer,dimension(:),allocatable::positive,less_than_one
+    
   integer,parameter,public::Additional_Data_Number = 24  !WARNING : adapt this value to the number of data
                                                         !hereafter:
   integer,parameter,public::i_MBol=1,i_MV=2,i_UB=3,i_BV=4,i_B2V1=5,i_VR=6,i_VI=7,i_JK=8,i_HK=9,i_VK=10, &
     i_GV=11,i_GbpV=12,i_GrpV=13,i_Gflag=14,i_PolarRadius=15,i_polar_gravity=16,i_MV_noisy=17,i_BV_noisy=18, &
     i_BC=19,i_logL_gd=20,i_logTeff_gd=21,i_logL_lgd=22,i_logTeff_lgd=23,i_mean_gravity=24
 
-  character(*),parameter,public::ReadFormat = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
+  character(*),parameter,private::ReadFormat_GE = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
      &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),3(1x,e9.2),&
      &0p,2(1x,f9.6),1x,1pe14.7,1x,e17.10)'
+  character(*),parameter,private::ReadFormat_SE = '(1x,i3,1x,e17.10,3(1x,f9.6),1x,f13.8,1x,f11.5,1x,f5.2,1x,e10.3,&
+      &1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),16(1x,e11.4),1x,&
+      &e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),52(1x,e11.4))'
+
+  character(512),private::ReadFormat
 
   logical,public,save:: verbose
 
@@ -128,6 +209,11 @@ contains
 
     if (MyFormat == 1) then
     ! GENEC format
+      allocate(positive(size(positive_GE)))
+      allocate(less_than_one(size(less_than_one_GE)))
+      positive(:) = positive_GE(:)
+      less_than_one(:) = less_than_one_GE(:)
+      ReadFormat = ReadFormat_GE
       Data_Number = Data_Number_GE
       i_time = i_time_GE
       i_mass = i_mass_GE
@@ -173,7 +259,147 @@ contains
       i_L_tot = i_L_tot_GE
     else if (MyFormat == 2) then
     ! Starevol format
-      write(*,*) 'Done'
+      allocate(positive(size(positive_SE)))
+      allocate(less_than_one(size(less_than_one_SE)))
+      positive(:) = positive_SE(:)
+      less_than_one(:) = less_than_one_SE(:)
+      ReadFormat = ReadFormat_SE
+      Data_Number = Data_Number_SE
+      i_time = i_time_SE
+      i_logTeff = i_logTeff_SE
+      i_logL = i_logL_SE
+      i_logLgrav = i_logLgrav_SE
+      i_mass = i_mass_SE
+      i_R = i_R_SE
+      i_logg = i_logg_SE
+      i_logrhophot = i_logrhophot_SE
+      i_Mdot = i_Mdot_SE
+      i_Tc = i_Tc_SE
+      i_Pc = i_Pc_SE
+      i_rhoc = i_rhoc_SE
+      i_logTmax = i_logTmax_SE
+      i_MTmax = i_MTmax_SE
+      i_logrhoTmax = i_logrhoTmax_SE
+      i_epsnucl = i_epsnucl_SE
+      i_epsgrav = i_epsgrav_SE
+      i_epsnu = i_epsnu_SE
+      i_MrbCE = i_MrbCE_SE
+      i_RbCE = i_RbCE_SE
+      i_logTbCE = i_logTbCE_SE
+      i_logrhobCE = i_logrhobCE_SE
+      i_MrtCC = i_MrtCC_SE
+      i_RtCC = i_RtCC_SE
+      i_logTtCC = i_logTtCC_SE
+      i_logrhotCC = i_logrhotCC_SE
+      i_Taumax = i_Taumax_SE
+      i_Romax = i_Romax_SE
+      i_Taug = i_Taug_SE
+      i_Rog = i_Rog_SE
+      i_TauHp2 = i_TauHp2_SE
+      i_RoHp2 = i_RoHp2_SE
+      i_TauHp = i_TauHp_SE
+      i_RoHp = i_RoHp_SE
+      i_TauR2 = i_TauR2_SE
+      i_RoR2 = i_RoR2_SE
+      i_TauM2 = i_TauM2_SE
+      i_RoM2 = i_RoM2_SE
+      i_k2conv = i_k2conv_SE
+      i_k2rad = i_k2rad_SE
+      i_Omega_surf = i_Omega_surf_SE
+      i_Omega_cen = i_Omega_cen_SE
+      i_v_equa = i_v_equa_SE
+      i_Prot = i_Prot_SE
+      i_Jact = i_Jact_SE
+      i_Jcore = i_Jcore_SE
+      i_Omega_Omcrit = i_Omega_Omcrit_SE
+      i_v_crit1 = i_v_crit1_SE
+      i_torque = i_torque_SE
+      i_Bequi = i_Bequi_SE
+      i_Dnu = i_Dnu_SE
+      i_Dnuech = i_Dnuech_SE
+      i_Dnuerr = i_Dnuerr_SE
+      i_numax = i_numax_SE
+      i_dPiasym = i_dPiasym_SE
+      i_Racctot = i_Racctot_SE
+      i_RaccbCE = i_RaccbCE_SE
+      i_RaccHe = i_RaccHe_SE
+      i_MBolT = i_MBolT_SE
+      i_BCT = i_BCT_SE
+      i_UBT = i_UBT_SE
+      i_BVT = i_BVT_SE
+      i_VRT = i_VRT_SE
+      i_VIT = i_VIT_SE
+      i_JKT = i_JKT_SE
+      i_HKT = i_HKT_SE
+      i_VKT = i_VKT_SE
+      i_GVT = i_GVT_SE
+      i_GbpVT = i_GbpVT_SE
+      i_GrpVT = i_GrpVT_SE
+      i_MUT = i_MUT_SE
+      i_MBT = i_MBT_SE
+      i_M_VT = i_M_VT_SE
+      i_M_RT = i_M_RT_SE
+      i_M_IT = i_M_IT_SE
+      i_M_HT = i_M_HT_SE
+      i_M_JT = i_M_JT_SE
+      i_M_KT = i_M_KT_SE
+      i_M_GT = i_M_GT_SE
+      i_M_GbpT = i_M_GbpT_SE
+      i_M_GrpT = i_M_GrpT_SE
+      i_H1_surf = i_H1_surf_SE
+      i_H2_surf = i_H2_surf_SE
+      i_He3_surf = i_He3_surf_SE
+      i_He4_surf = i_He4_surf_SE
+      i_Li6_surf = i_Li6_surf_SE
+      i_Li7_surf = i_Li7_surf_SE
+      i_Be7_surf = i_Be7_surf_SE
+      i_Be9_surf = i_Be9_surf_SE
+      i_B10_surf = i_B10_surf_SE
+      i_B11_surf = i_B11_surf_SE
+      i_C12_surf = i_C12_surf_SE
+      i_C13_surf = i_C13_surf_SE
+      i_C14_surf = i_C14_surf_SE
+      i_N14_surf = i_N14_surf_SE
+      i_N15_surf = i_N15_surf_SE
+      i_O16_surf = i_O16_surf_SE
+      i_O17_surf = i_O17_surf_SE
+      i_O18_surf = i_O18_surf_SE
+      i_F19_surf = i_F19_surf_SE
+      i_Ne20_surf = i_Ne20_surf_SE
+      i_Ne21_surf = i_Ne21_surf_SE
+      i_Ne22_surf = i_Ne22_surf_SE
+      i_Na23_surf = i_Na23_surf_SE
+      i_Mg24_surf = i_Mg24_surf_SE
+      i_Mg25_surf = i_Mg25_surf_SE
+      i_Mg26_surf = i_Mg26_surf_SE
+      i_Al26_surf = i_Al26_surf_SE
+      i_Al27_surf = i_Al27_surf_SE
+      i_Si28_surf = i_Si28_surf_SE
+      i_H1_cen = i_H1_cen_SE
+      i_H2_cen = i_H2_cen_SE
+      i_He3_cen = i_He3_cen_SE
+      i_He4_cen = i_He4_cen_SE
+      i_C12_cen = i_C12_cen_SE
+      i_C13_cen = i_C13_cen_SE
+      i_C14_cen = i_C14_cen_SE
+      i_N14_cen = i_N14_cen_SE
+      i_N15_cen = i_N15_cen_SE
+      i_O16_cen = i_O16_cen_SE
+      i_O17_cen = i_O17_cen_SE
+      i_O18_cen = i_O18_cen_SE
+      i_F19_cen = i_F19_cen_SE
+      i_Ne20_cen = i_Ne20_cen_SE
+      i_Ne21_cen = i_Ne21_cen_SE
+      i_Ne22_cen = i_Ne22_cen_SE
+      i_Na23_cen = i_Na23_cen_SE
+      i_Mg24_cen = i_Mg24_cen_SE
+      i_Mg25_cen = i_Mg25_cen_SE
+      i_Mg26_cen = i_Mg26_cen_SE
+      i_Al26_cen = i_Al26_cen_SE
+      i_Al27_cen = i_Al27_cen_SE
+      i_Si28_cen = i_Si28_cen_SE
+      ! For starevol format, we set i_logTeff_corr to i_logTeff, since they are not distinguished.
+      i_logTeff_corr = i_logTeff
     else
       write(*,*) 'Problems with the requested format, aborting...'
       stop
@@ -197,7 +423,7 @@ contains
     allocate(MyTimeModel%Data_Line(Number_of_data))
 
     do i=1,Number_of_data
-      MyTimeModel%Data_Line(i) = -1
+      MyTimeModel%Data_Line(i) = -1.d0
     enddo
 
     return
@@ -264,17 +490,21 @@ contains
 
     ! Read the data, and check the number of different lines.
     do i=1,LineNumber
-      read(ReadUnit,ReadFormat,iostat=error)Structure%line(i),(Structure%Data_Table(i,j),j=1,Data_Number)
+      read(ReadUnit,trim(ReadFormat),iostat=error)Structure%line(i),(Structure%Data_Table(i,j),j=1,Data_Number)
       if (error /= 0) then
         write(*,*) 'Problem reading file ',trim(FileNameIn),'. Aborting...'
         stop
       endif
       ! To perform a better interpolation, the null mass loss rate (in log) are put to -32.
-      if (abs(Structure%Data_Table(i,i_Mdot)) < 1.d-30) then
-        Structure%Data_Table(i,i_Mdot) = -32.d0
+      if (i_Mdot > 0) then
+        if (abs(Structure%Data_Table(i,i_Mdot)) < 1.d-30) then
+          Structure%Data_Table(i,i_Mdot) = -32.d0
+        endif
       endif
-      if (abs(Structure%Data_Table(i,i_Mdot_mec)) < 1.d-30) then
-        Structure%Data_Table(i,i_Mdot_mec) = -32.d0
+      if (i_Mdot_mec > 0) then
+        if (abs(Structure%Data_Table(i,i_Mdot_mec)) < 1.d-30) then
+          Structure%Data_Table(i,i_Mdot_mec) = -32.d0
+        endif
       endif
     enddo
 
@@ -473,6 +703,7 @@ module interpolmod
   public:: Make_InterpolatedModel
   public:: Make_TimeModel
   public:: Bilin_Interpol
+  public:: Plane_Interpol
 
   private:: Interpol_factor
   private:: Interpol_factor_array
@@ -484,6 +715,8 @@ module interpolmod
   private:: omega_Position_and_factor
   private:: mass_Position_and_factor
   private:: Z_Position_and_factor
+  private:: check0
+  private:: check1
 
 contains
 
@@ -888,11 +1121,8 @@ contains
     ! the table are passed by arguments.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only:type_DataStructure,i_mass,Table_Line_Number,i_H1_Surf,i_He4_surf,i_C12_surf,i_C13_surf, &
-      i_N14_surf,i_O16_surf,i_O17_surf,i_O18_surf,i_Ne20_surf,i_Ne22_surf,i_Al26_surf,i_Mcc, &
-      i_H1_cen,i_He4_cen,i_C12_cen,i_C13_cen,i_N14_cen,i_O16_cen,i_O17_cen,i_O18_cen,i_Ne20_cen, &
-      i_Ne22_cen,i_Al26_cen,i_Omega_Omcrit,i_Gamma_Ed,i_Omega_surf,i_Mcc,i_oblat,i_v_equa,i_v_crit1,i_v_crit2, &
-      Init_DataStructure,Del_DataStructure,Data_Number,Table_Line_Number
+    use DataStructure, only:type_DataStructure,positive,less_than_one,Init_DataStructure, &
+                            Del_DataStructure,Data_Number,Table_Line_Number
     use VariousParameters, only:All_Data_Array,Z_Number
 
     implicit none
@@ -909,7 +1139,7 @@ contains
 
     integer::i
 
-    ! Initialisation of the intermediate structures used here:
+! Initialisation of the intermediate structures used here:
     call Init_DataStructure(Table_Line_Number,Data_Number,New_Structure)
     call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Below)
     call Init_DataStructure(Table_Line_Number,Data_Number,Structure_Above)
@@ -944,180 +1174,9 @@ contains
     endif
 
     ! Among the interpolated variables, some of them cannot physically overcome 1 or be negative. They are corrected here.
-    do i=1,Table_Line_Number
-      if (New_Structure%Data_Table(i,i_H1_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_H1_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_He4_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_He4_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C12_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_C12_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C13_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_C13_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_N14_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_N14_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O16_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_O16_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O17_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_O17_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O18_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_O18_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne20_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_Ne20_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne22_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_Ne22_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Al26_surf) > 1.d0) then
-        New_Structure%Data_Table(i,i_Al26_surf) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Mcc) > 1.d0) then
-        New_Structure%Data_Table(i,i_Mcc) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_H1_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_H1_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_He4_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_He4_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C12_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_C12_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C13_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_C13_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_N14_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_N14_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O16_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_O16_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O17_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_O17_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O18_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_O18_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne20_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_Ne20_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne22_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_Ne22_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Al26_cen) > 1.d0) then
-        New_Structure%Data_Table(i,i_Al26_cen) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Omega_Omcrit) > 1.d0) then
-        New_Structure%Data_Table(i,i_Omega_Omcrit) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Gamma_Ed) > 1.d0) then
-        New_Structure%Data_Table(i,i_Gamma_Ed) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_H1_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_H1_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_He4_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_He4_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C12_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_C12_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C13_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_C13_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_N14_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_N14_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O16_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_O16_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O17_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_O17_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O18_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_O18_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne20_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_Ne20_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne22_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_Ne22_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Al26_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_Al26_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Mcc) < 0.d0) then
-        New_Structure%Data_Table(i,i_Mcc) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_H1_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_H1_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_He4_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_He4_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C12_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_C12_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_C13_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_C13_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_N14_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_N14_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O16_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_O16_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O17_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_O17_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_O18_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_O18_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne20_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_Ne20_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Ne22_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_Ne22_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Al26_cen) < 0.d0) then
-        New_Structure%Data_Table(i,i_Al26_cen) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Omega_Omcrit) < 0.d0) then
-        New_Structure%Data_Table(i,i_Omega_Omcrit) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Gamma_Ed) < 0.d0) then
-        New_Structure%Data_Table(i,i_Gamma_Ed) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Omega_surf) < 0.d0) then
-        New_Structure%Data_Table(i,i_Omega_surf) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_Mcc) < 0.d0) then
-        New_Structure%Data_Table(i,i_Mcc) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_v_equa) < 0.d0) then
-        New_Structure%Data_Table(i,i_v_equa) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_oblat) > 1.d0) then
-        New_Structure%Data_Table(i,i_oblat) = 1.d0
-      endif
-      if (New_Structure%Data_Table(i,i_oblat) < 2.d0/3.d0) then
-        New_Structure%Data_Table(i,i_oblat) = 2.d0/3.d0
-      endif
-      if (New_Structure%Data_Table(i,i_v_crit1) < 0.d0) then
-        New_Structure%Data_Table(i,i_v_crit1) = 0.d0
-      endif
-      if (New_Structure%Data_Table(i,i_v_crit2) < 0.d0) then
-        New_Structure%Data_Table(i,i_v_crit2) = 0.d0
-      endif
-    enddo
-
+    call check0(New_Structure,size(positive),positive,Table_Line_Number)
+    call check1(New_Structure,size(less_than_one),less_than_one,Table_Line_Number)
+    
     ! Delete intermediate strutures:
     call Del_DataStructure(Structure_Below)
     call Del_DataStructure(Structure_Above)
@@ -1157,7 +1216,7 @@ contains
           All_Data_Array(Z_coord,Mass_Position+1,Omega_Position(1)+1),Omega_factor(1), &
           Interpolated_Structure)
       else if (Mass_factor == 0.d0) then
-        ! If the mass is close to an eisting mass, no interpolation is needed.
+        ! If the mass is close to an existing mass, no interpolation is needed.
         call Interpolate_Model(All_Data_Array(Z_coord,Mass_Position,Omega_Position(1)), &
           All_Data_Array(Z_coord,Mass_Position,Omega_Position(1)+1),Omega_factor(1), &
           Interpolated_Structure)
@@ -1263,7 +1322,8 @@ contains
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: i_time,type_DataStructure,type_TimeModel,Table_Line_Number,i_Mdot,i_Mdot_mec, &
-                             Data_Number,Init_TimeModel
+                             Data_Number,Init_TimeModel,i_logL
+    use VariousParameters, only: table_format
 
     implicit none
 
@@ -1292,13 +1352,15 @@ contains
         Interpolated_Model%Omega_Omcrit_ini
       stop
     endif
-
+    
     ! Here, the value which were put to -32 during the reading of the initial files are set back to 0.
     if (CurrentTime_Line%Data_Line(i_Mdot) < -25.d0) then
       CurrentTime_Line%Data_Line(i_Mdot) = 0.d0
     endif
-    if (CurrentTime_Line%Data_Line(i_Mdot_mec) < -25.d0) then
-      CurrentTime_Line%Data_Line(i_Mdot_mec) = 0.d0
+    if (table_format == 1) then
+      if (CurrentTime_Line%Data_Line(i_Mdot_mec) < -25.d0) then
+        CurrentTime_Line%Data_Line(i_Mdot_mec) = 0.d0
+      endif
     endif
 
     return
@@ -1343,7 +1405,7 @@ contains
     ! Prepare for the time interpolation, searching the lines in the interpolated model file.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only: type_DataStructure,type_TimeModel,i_time,Data_Number
+    use DataStructure, only: type_DataStructure,type_TimeModel,i_time,Data_Number,i_logL
 
     implicit none
 
@@ -1378,12 +1440,6 @@ contains
     call Interpol_factor_array(Interpolated_Model%Data_Table(Current_time_line_number,:), &
       Interpolated_Model%Data_Table(Current_time_line_number+1,:), factor,1,Data_Number, &
       CurrentTime_Line%Data_Line(:))
-    if (CurrentTime_Line%Data_Line(4) <=0.d0) then
-      write(*,*) 'negatif', factor, Interpolated_Model%Data_Table(Current_time_line_number,4), &
-        Interpolated_Model%Data_Table(Current_time_line_number+1,4)
-      write(*,*) CurrentTime_Line%Metallicity,CurrentTime_Line%mass_ini,CurrentTime_Line%Omega_Omcrit_ini
-      stop
-    endif
 
     ! Initialise the additional data to 0.
     CurrentTime_Line%Additional_Data_Line(:) = 0.d0
@@ -1392,6 +1448,63 @@ contains
 
   end subroutine Time_Interpolation
 ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine check0(A_Structure,n,array_positive,n_lines)
+  ! Check that variables that should remain positive behaves well during the interpolation process.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    use DataStructure, only: type_DataStructure
+    
+    implicit none
+  
+    type(type_DataStructure), intent(inout):: A_Structure
+    integer, intent(in):: n_lines,n
+    integer, dimension(n):: array_positive
+    
+    integer::i,j
+    
+    do i=1,n_lines
+      do j=1,n
+        if (A_Structure%Data_Table(i,array_positive(j)) <= 0.d0) then
+          A_Structure%Data_Table(i,array_positive(j)) = 0.d0
+        endif
+      enddo
+    enddo
+    
+    return
+
+  end subroutine check0
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine check1(A_Structure,n,array_less_than_one,n_lines)
+  ! Check that variables that should be smaller than one behaves well during the interpolation process.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+    use DataStructure, only: type_DataStructure
+    
+    implicit none
+  
+    type(type_DataStructure), intent(inout):: A_Structure
+    integer, intent(in):: n_lines,n
+    integer, dimension(n):: array_less_than_one
+    
+    integer::i,j
+    
+    do i=1,n_lines
+      do j=1,n
+        if (A_Structure%Data_Table(i,array_less_than_one(j)) >= 1.d0) then
+          A_Structure%Data_Table(i,array_less_than_one(j)) = 1.d0
+        endif
+      enddo
+    enddo
+    
+    return
+
+  end subroutine check1
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 end module interpolmod
 ! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -1867,8 +1980,11 @@ contains
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: type_TimeModel,i_polar_gravity,i_MBol,i_MV,i_UB,i_BV,i_B2V1,i_VR,i_VI, &
-      i_JK,i_HK,i_VK,i_BC,i_GV,i_GbpV,i_GrpV,i_Gflag
+      i_JK,i_HK,i_VK,i_BC,i_GV,i_GbpV,i_GrpV,i_Gflag,i_UBT,i_BVT,i_VRT,i_VIT,i_JKT,i_HKT,i_VKT,i_BCT, &
+      i_MBolT,i_M_VT,i_GVT,i_GbpVT,i_GrpVT,i_MUT,i_MBT,i_M_RT,i_M_IT,i_M_HT,i_M_JT,i_M_KT,i_M_GT, &
+      i_M_GbpT,i_M_GrpT
     use Constant, only: Z_sun
+    use VariousParameters, only: table_format
 
     implicit none
 
@@ -1911,6 +2027,34 @@ contains
         Model%Additional_Data_Line(i_Gflag) = 0.d0
     else
         Model%Additional_Data_Line(i_Gflag) = 1.d0
+    endif
+    
+    ! When using starevol format, the colours are interpolated as the other quantities (they are already in
+    ! the tables). However, we prefer here to recompute them to be coherent.
+    if (table_format == 2) then
+      Model%Data_Line(i_UBT) = Model%Additional_Data_Line(i_UB)
+      Model%Data_Line(i_BVT) = Model%Additional_Data_Line(i_BV)
+      Model%Data_Line(i_VRT) = Model%Additional_Data_Line(i_VR)
+      Model%Data_Line(i_VIT) = Model%Additional_Data_Line(i_VI)
+      Model%Data_Line(i_JKT) = Model%Additional_Data_Line(i_JK)
+      Model%Data_Line(i_HKT) = Model%Additional_Data_Line(i_HK)
+      Model%Data_Line(i_VKT) = Model%Additional_Data_Line(i_VK)
+      Model%Data_Line(i_BCT) = Model%Additional_Data_Line(i_BC)
+      Model%Data_Line(i_MBolT) = Model%Additional_Data_Line(i_Mbol)
+      Model%Data_Line(i_M_VT) = Model%Additional_Data_Line(i_MV)
+      Model%Data_Line(i_GVT) = Model%Additional_Data_Line(i_GV)
+      Model%Data_Line(i_GbpVT) = Model%Additional_Data_Line(i_GbpV)
+      Model%Data_Line(i_GrpVT) = Model%Additional_Data_Line(i_GrpV)
+      Model%Data_Line(i_MBT) = Model%Data_Line(i_BVT) + Model%Data_Line(i_M_VT)
+      Model%Data_Line(i_MUT) = Model%Data_Line(i_UBT) + Model%Data_Line(i_MBT)
+      Model%Data_Line(i_M_RT) = -Model%Data_Line(i_VRT) + Model%Data_Line(i_M_VT)
+      Model%Data_Line(i_M_IT) = -Model%Data_Line(i_VIT) + Model%Data_Line(i_M_VT)
+      Model%Data_Line(i_M_KT) = -Model%Data_Line(i_VKT) + Model%Data_Line(i_M_VT)
+      Model%Data_Line(i_M_HT) = Model%Data_Line(i_HKT) + Model%Data_Line(i_M_KT)
+      Model%Data_Line(i_M_JT) = Model%Data_Line(i_JKT) + Model%Data_Line(i_M_KT)
+      Model%Data_Line(i_M_GT) = Model%Data_Line(i_GVT) + Model%Data_Line(i_M_VT)
+      Model%Data_Line(i_M_GbpT) = Model%Data_Line(i_GbpVT) + Model%Data_Line(i_M_VT)
+      Model%Data_Line(i_M_GrpT) = Model%Data_Line(i_GrpVT) + Model%Data_Line(i_M_VT)
     endif
 
     return
@@ -2390,20 +2534,23 @@ contains
     ! Computation of the additional quantities (g_P,and color-magnitude).
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only:type_DataStructure,type_TimeModel,i_time
+    use DataStructure, only:type_DataStructure,type_TimeModel,i_time,Data_Number,Init_TimeModel
 
     implicit none
 
     integer, intent(in):: Dimen
     real(kind=8), intent(in):: Angle
-    type(type_DataStructure), intent(in):: Modele_Interpole
+    type(type_DataStructure), intent(inout):: Modele_Interpole
 
     type(type_TimeModel),dimension(Dimen), intent(out):: Modeles_Line
 
     type(type_TimeModel):: Current_Line
 
     integer:: i
-
+    
+    ! Initialisation of Current_Line
+    call Init_TimeModel(Data_Number,Current_Line)
+    
     do i=1,Dimen
       Current_Line%star_ID = i
       Current_Line%Is_a_Binary = 0
@@ -4010,7 +4157,7 @@ contains
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine Mass_RandomDraw(IMF,mass)
-    ! Random draw for the angular velocity (according to the chosen distribution)
+    ! Random draw for the mass (according to the chosen distribution)
     ! Note - case (1) : Salpeter IMF has been tested over a sample of 10^7 draws sucessfuly.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -4173,7 +4320,7 @@ contains
     write(*,*) ''
     write(*,*) 'Cyril Georgy, Aurelien Wyttenbach,'
     write(*,*) 'Anahi Granada & Sylvia Ekstrom'
-    write(*,*) 'Last Version : December 4 2014'
+    write(*,*) 'Last Version : March 14 2019'
     write(*,*) '**********************************************'
     write(*,*)
     write(*,*) '**********************************************'
@@ -4289,7 +4436,7 @@ contains
     ! Ask if parameters are changed or not.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use VariousParameters, only: Comp_Mode
+    use VariousParameters, only: Comp_Mode,table_format
 
     implicit none
 
@@ -4316,6 +4463,11 @@ contains
       write(*,*) '(3) Computation of a stellar population as a function of time'
       write(*,*) '(4) Computation of a single stellar model'
       read(5,*) Comp_Mode
+      ! Starevol format not yet usable with population mode.
+      if (Comp_Mode == 3 .and. table_format == 2) then
+        write(*,*) 'This mode is not yet available for starevol formats. Chose another one'
+        Comp_Mode = -1
+      endif
     enddo
 
     select case (Comp_Mode)
@@ -4360,16 +4512,16 @@ contains
       write(*,*)
       write(*,*) 'Parameters you can change:'
       write(*,'(a,a)') '1. Grid                                     ',grid
-      write(*,'(a,l)') '2. Format of the tables                     ',table_format
-      write(*,'(a,l)') '2. Tables with PMS                          ',PMS
+      write(*,'(a,i1)') '2. Format of the tables                     ',table_format
+      write(*,'(a,l)') '3. Tables with PMS                          ',PMS
       write(*,'(a,i8)') '4. maximum number of star in the cluster  ',star_number
       write(*,'(a,i5)') '5. IMF type                                  ',IMF_type
       write(*,'(a,f6.2)') '6. minimum mass for IMF                     ',m_IMF_inf
       write(*,'(a,f6.2)') '7. maximum mass for IMF                     ',m_IMF_sup
       write(*,'(a,f6.4)') '8. metallicity                              ',fixed_metallicity
       write(*,'(a,i5)') '9. angular velocity distribution             ',ivdist
-      write(*,'(a,f5.2)') '10. special angular velocity (ivdist=3)       ',om_ivdist
-      write(*,'(a,i5)') '11. angle of view distribution                ',iangle
+      write(*,'(a,f5.2)') '10. special angular velocity (ivdist=3)      ',om_ivdist
+      write(*,'(a,i5)') '11. angle of view distribution               ',iangle
       write(*,'(a,f5.2)') '12. special angle of view (iangle=3)         ',Fixed_AoV_latitude
       write(*,'(a,f5.2)') '13. probability of binarity                  ',binary_prob
       write(*,'(a,i5)') '14. Colour - Teff calibration                ',Colour_Calibration_mode
@@ -4412,12 +4564,12 @@ contains
           endif
         case(2)
           Temp_Var_Int=10
-          do while (Temp_Var_Int /= 1 .or. Temp_Var_Int /= 2)
+          do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'What is the wanted format for the tables?'
             write(*,*) '1. GENEC format'
             write(*,*) '2. Starevol format'
             read(5,*) Temp_Var_Int
-            if (Temp_Var_Int /= 1 .or. Temp_Var_Int /= 2) then
+            if (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2) then
               write(*,*) 'Please enter 1 or 2.'
             endif
           enddo
@@ -4490,7 +4642,7 @@ contains
             write(*,*) '0. uniform'
             write(*,*) '1. Huang10'
             write(*,*) '2. Huang-Gies06'
-            write(*,*) '3. Dirac (see parameter 7)'
+            write(*,*) '3. Dirac (see parameter 10)'
             write(*,*) '4. external file'
             read(*,*) Temp_Var_Int
             if (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /=2 .and. &
@@ -5041,7 +5193,7 @@ contains
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  subroutine WriteResults
+  subroutine WriteResults(write_mode)
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: i_mass,i_logL,i_logTeff_corr,i_H1_Surf,i_He4_surf,i_C12_surf,i_C13_surf,i_N14_surf, &
@@ -5057,22 +5209,53 @@ contains
 
     implicit none
 
+    integer, intent(in):: write_mode
+    
     integer::error,i,j
 
-    character(*),parameter:: Output_Format= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,17(2x,f8.4),2x,1pe9.3,2x,0pf6.4,2x,f6.3,2x,&
-                                         &e9.3,3(2x,f8.2),2x,f6.4,1x,f7.3,1x,f7.3,2x,f6.4,11(2x,e9.3))'    , &
-      Output_Format_Cluster= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
+    character(*),parameter:: Output_Format_GE= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,17(2x,f8.4),2x,1pe9.3,&
+                                         &2x,0pf6.4,2x,f6.3,2x,e9.3,3(2x,f8.2),2x,f6.4,1x,f7.3,1x,f7.3,&
+                                         &2x,f6.4,11(2x,e9.3))', &
+      Output_Format_SE= '(f7.3,2x,f8.6,2x,f5.3,2x,3(1x,f9.6),1x,f13.8,1x,f11.5,1x,f5.2,1x,e10.3,&
+      &1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),16(1x,e11.4),1x,&
+      &e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),52(1x,e11.4))', &
+      Output_Format_Cluster_GE= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
                                          &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
-                                         &f7.3,2x,f6.4,11(2x,e9.3))'    , &
-      Output_Format_Single = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
-                                         &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),&
-                                         &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,16(2x,f7.3))'    , &
-      Header = ' M_ini      Z_ini  OmOc_ini  M       logL     logTe_c  logTe_nc      MBol        &
+                                         &f7.3,2x,f6.4,11(2x,e9.3))', &
+      Output_Format_Cluster_SE= '(f7.3,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,3(1x,f9.6),1x,f13.8,1x,f11.5,&
+      &1x,f5.2,1x,e10.3,1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),&
+      &16(1x,e11.4),1x,e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),&
+      &52(1x,e11.4)))', &
+      Output_Format_Single_GE = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
+                                  &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),&
+                                  &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,16(2x,f7.3))', &
+      Output_Format_Single_SE = '(1x,i3,1x,e17.10,3(1x,f9.6),1x,f13.8,1x,f11.5,1x,f5.2,1x,e10.3,&
+      &1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),16(1x,e11.4),1x,&
+      &e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),52(1x,e11.4))', &
+      Header_GE = ' M_ini      Z_ini  OmOc_ini  M       logL     logTe_c  logTe_nc      MBol        &
                          &MV       U-B       B-V       V-K       V-R       V-I       J-K&
                          &       H-K       G-V     Gbp-V     Grp-V    G_flag&
                          &        BC      r_pol   oblat   g_pol    Omega_S      v_eq   v_crit1&
                          &   v_crit2  Om/Om_cr lg(Md)  lg(Md_M) Ga_Ed H1         He4        C12        C13&
                          &        N14        O16        O17        O18        Ne20       Ne22       Al26', &
+      Header_SE = ' M_ini      Z_ini  OmOc_ini lg(Teff)     lg(L) lg(Lgrav)             M           R lg(g)&
+                   &   rho_phot   lg(Mdot)    lg(Tc)    lg(Pc)  lg(rhoc)  lg(Tmax)  Mr(Tmax)lg(rhomax)&
+                   &    eps_nucl    eps_grav      eps_nu   Mr_b(CE)  R_b(CE)/R  lg(T_b)lg(rho_b)   Mr_t(CC)&
+                   &  R_t(CC)/R  lg(T_t)lg(rho_t)     tau_max      Ro_max       tau_g        Ro_g     tau_Hp2&
+                   &      Ro_Hp2      tau_Hp       Ro_Hp      tau_R2       Ro_R2      tau_M2       Ro_M2&
+                   &     k2_conv      k2_rad     Omega_s     Omega_c     Vsurf        Prot     J_act    J_core&
+                   &         OOc     Vcrit      torque    B_equi        D_nu    D_nu_ech    D_nu_err      nu_max&
+                   &   DPi_asym.   R_acc_tot   R_acc_BCE    R_acc_He     Mbol       BC      U-B      B-V      V-R&
+                   &      V-I      J-K      H-K      V-K      G-V    Gbp-V    Grp-V      M_U      M_B      M_V&
+                   &      M_R      M_I      M_H      M_J      M_K      M_G    M_Gbp    M_Grp         H1s&
+                   &         H2s        He3s        He4s        Li6s        Li7s        Be7s        Be9s&
+                   &        B10s        B11s        C12s        C13s        C14s        N14s        N15s&
+                   &        O16s        O17s        O18s        F19s       Ne20s       Ne21s       Ne22s&
+                   &       Na23s       Mg24s       Mg25s       Mg26s       Al26s       Al27s       Si28s&
+                   &         H1c         H2c        He3c        He4c        C12c        C13c        C14c&
+                   &        N14c        N15c        O16c        O17c        O18c        F19c       Ne20c&
+                   &       Ne21c       Ne22c       Na23c       Mg24c       Mg25c       Mg26c       Al26c&
+                   &       Al27c       Si28c', &
       Header_Be = '      time        #star       O-star       B-star       A-star       F-star&
                          &           Oe           Be           Ae           Fe       O > 50      O >  70&
                          &       O > 80       O > 90       O > 95       O > 98       B > 50      B >  70&
@@ -5082,18 +5265,188 @@ contains
                          &          WNL          WNE           WC           WO     Cepheids Cepheid_norm&
                          &  4<L_RSG<4.5  4.5<L_RSG<5  5<L_RSG<5.5  5.5<L_RSG<6          BSG      early B&
                          & early B > 80   MS 2mag<TO         Mtot', &
-      Header_Cluster = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
-                         &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
-                         &        MV       U-B       B-V       V-R       V-I&
-                         &       J-K       H-K       V-K     MV_n     B-V_n&
-                         &       G-V     Gbp-V     Grp-V     G_flag&
-                         &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
-                         &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
-                         &        O17        O18       Ne20       Ne22       Al26'
+      Header_Cluster_GE = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
+                           &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
+                           &        MV       U-B       B-V       V-R       V-I&
+                           &       J-K       H-K       V-K     MV_n     B-V_n&
+                           &       G-V     Gbp-V     Grp-V     G_flag&
+                           &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
+                           &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
+                           &        O17        O18       Ne20       Ne22       Al26', &
+      Header_Cluster_SE = '  M_ini     Z_ini  OmOc_ini Angle  Bin   M1/M2   lg(Teff)     lg(L) lg(Lgrav)&
+                   &             M           R lg(g)&
+                   &   rho_phot   lg(Mdot)    lg(Tc)    lg(Pc)  lg(rhoc)  lg(Tmax)  Mr(Tmax)lg(rhomax)&
+                   &    eps_nucl    eps_grav      eps_nu   Mr_b(CE)  R_b(CE)/R  lg(T_b)lg(rho_b)   Mr_t(CC)&
+                   &  R_t(CC)/R  lg(T_t)lg(rho_t)     tau_max      Ro_max       tau_g        Ro_g     tau_Hp2&
+                   &      Ro_Hp2      tau_Hp       Ro_Hp      tau_R2       Ro_R2      tau_M2       Ro_M2&
+                   &     k2_conv      k2_rad     Omega_s     Omega_c     Vsurf        Prot     J_act    J_core&
+                   &         OOc     Vcrit      torque    B_equi        D_nu    D_nu_ech    D_nu_err      nu_max&
+                   &   DPi_asym.   R_acc_tot   R_acc_BCE    R_acc_He     Mbol       BC      U-B      B-V      V-R&
+                   &      V-I      J-K      H-K      V-K      G-V    Gbp-V    Grp-V      M_U      M_B      M_V&
+                   &      M_R      M_I      M_H      M_J      M_K      M_G    M_Gbp    M_Grp         H1s&
+                   &         H2s        He3s        He4s        Li6s        Li7s        Be7s        Be9s&
+                   &        B10s        B11s        C12s        C13s        C14s        N14s        N15s&
+                   &        O16s        O17s        O18s        F19s       Ne20s       Ne21s       Ne22s&
+                   &       Na23s       Mg24s       Mg25s       Mg26s       Al26s       Al27s       Si28s&
+                   &         H1c         H2c        He3c        He4c        C12c        C13c        C14c&
+                   &        N14c        N15c        O16c        O17c        O18c        F19c       Ne20c&
+                   &       Ne21c       Ne22c       Na23c       Mg24c       Mg25c       Mg26c       Al26c&
+                   &       Al27c       Si28c'
 
     character(1)::Answer = 'k'
     character(256)::Output_FileName,formatPop
-
+    character(512)::Output_Format,Output_Format_Single,Output_Format_Cluster
+    character(2048)::Header,Header_Cluster
+    
+    integer:: DataToPrint_Single = -1, DataToPrint_Iso = -1, DataToPrint_Cluster = -1, bigswitch = -1
+    integer,parameter:: DataToPrint_Single_GE = 58,DataToPrint_Iso_GE = 43,DataToPrint_Cluster_GE = 51
+    integer,parameter:: DataToPrint_Single_SE = 133,DataToPrint_Iso_SE = 135,DataToPrint_Cluster_SE = 137
+    
+    real(kind=8),dimension(:,:),allocatable::TableToPrint
+        
+    ! Perform some stuff related to the writing mode:
+    select case (write_mode)
+      case (1)
+      ! GENEC output
+        Output_Format = Output_Format_GE
+        Output_Format_Single = Output_Format_Single_GE
+        Output_Format_Cluster = Output_Format_Cluster_GE
+        DataToPrint_Single = DataToPrint_Single_GE
+        DataToPrint_Iso = DataToPrint_Iso_GE
+        DataToPrint_Cluster = DataToPrint_Cluster_GE
+        Header = Header_GE
+        Header_Cluster = Header_Cluster_GE
+        write(formatPop,'(a,i2,a)') '(es10.4,',Evolutionary_Values,'(3x,es10.4))'
+      case (2)
+      ! Starevol output
+        Output_Format = Output_Format_SE
+        Output_Format_Single = Output_Format_Single_SE
+        Output_Format_Cluster = Output_Format_Cluster_SE
+        DataToPrint_Single = DataToPrint_Single_SE
+        DataToPrint_Iso = DataToPrint_Iso_SE
+        DataToPrint_Cluster = DataToPrint_Cluster_SE
+        Header = Header_SE
+        Header_Cluster = Header_Cluster_SE
+      case default
+        write(*,*) 'Unexpected problem in writing format. Check.'
+        stop
+    end select
+    
+    ! Allocate the memory for the data to be printed.
+    ! Here, we set a new integer for switching mode to cover the whole possible options:
+    ! so far, 4 computing modes and 2 formats. 1-4 are GENEC, and 5-8 are starevol
+    bigswitch = 4*(write_mode-1)+Comp_Mode
+    select case (bigswitch)
+      case (1) ! GENEC cluster
+        allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,90.d0-CurrentTime_Model(i)%Angle_of_View*180.d0/pi, &
+            CurrentTime_Model(i)%mass_ratio, &
+            CurrentTime_Model(i)%Data_Line(i_mass),CurrentTime_Model(i)%Data_Line(i_logL), &
+            CurrentTime_Model(i)%Data_Line(i_logTeff_corr),CurrentTime_Model(i)%Data_Line(i_logTeff), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VK),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_BV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius),CurrentTime_Model(i)%Data_Line(i_oblat), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_mean_gravity)), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
+            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
+            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
+            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
+            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Al26_Surf)/)
+        enddo
+      case (2) ! GENEC isochrone
+        allocate(TableToPrint(Current_Number,DataToPrint_Iso))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,CurrentTime_Model(i)%Data_Line(i_mass), &
+            CurrentTime_Model(i)%Data_Line(i_logL),CurrentTime_Model(i)%Data_Line(i_logTeff_corr), &
+            CurrentTime_Model(i)%Data_Line(i_logTeff), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_BC),CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius), &
+            CurrentTime_Model(i)%Data_Line(i_oblat),log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
+            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
+            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
+            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
+            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Al26_Surf)/)
+        enddo
+      case (3) ! GENEC population
+        allocate(TableToPrint(N_Time_step,size(Evolution_Data,2)+1))
+        do i=1,N_Time_step
+          TableToPrint(i,:) = (/time_step_array(i),Evolution_Data(i,:)/)
+        enddo
+      case (4) ! GENEC single model
+        allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
+        do i=1,Table_Line_Number
+          if (iangle > 0) then
+            if (limb_dark > 0) then
+              CurrentTime_Model(i)%Data_Line(i_logL) = CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd)
+              CurrentTime_Model(i)%Data_Line(i_logTeff_corr) = CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd)
+            else
+              CurrentTime_Model(i)%Data_Line(i_logL) = CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd)
+              CurrentTime_Model(i)%Data_Line(i_logTeff_corr) = CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd)
+            endif
+          endif
+          TableToPrint(i,:) = (/(CurrentTime_Model(i)%Data_Line(j),j=1,Data_Number), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius)/R_sun, &
+            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_MBol,i_BV), &
+            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_VR,i_Gflag), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_BC)/)
+        enddo
+      case (5) ! starevol cluster
+        allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,90.d0-CurrentTime_Model(i)%Angle_of_View*180.d0/pi, &
+            CurrentTime_Model(i)%mass_ratio, &
+            CurrentTime_Model(i)%Data_Line(2:)/)
+        enddo
+      case (6) ! starevol isochrone
+        allocate(TableToPrint(Current_Number,DataToPrint_Iso))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,(CurrentTime_Model(i)%Data_Line(j),j=2,DataToPrint_Single)/)
+        enddo
+      case (7) ! starevol population
+        write(*,*) 'This should not occur. Check input parameters'
+        stop
+      case (8) ! starevol single model
+        allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
+        do i=1,Table_Line_Number
+          TableToPrint(i,:) = CurrentTime_Model(i)%Data_Line(:)
+        enddo
+      case default
+        write(*,*) 'Unexpected mode...'
+        stop
+    end select
+    
     ! Attribution of a file name.
     select case (Comp_Mode)
       case (1)
@@ -5141,97 +5494,31 @@ contains
 
     select case (Comp_Mode)
       case (1)
-        write(50,'(a)') 'WARNING: Note that in case of binary star, the B2-V1 color and the Teff are NOT the composite&
+        write(50,'(a)') 'WARNING: Note that in case of binary star, the colours and the Teff are NOT the composite&
                     & one, but only the primary ones !'
-        write(50,'(a)') Header_Cluster
+        write(50,'(a)') trim(Header_Cluster)
         write(50,*)
         do i=1,Current_Number
-          write(50,Output_Format_Cluster) CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
-            CurrentTime_Model(i)%Omega_Omcrit_ini,90.d0-CurrentTime_Model(i)%Angle_of_View*180.d0/pi, &
-            CurrentTime_Model(i)%Is_a_Binary,CurrentTime_Model(i)%mass_ratio, &
-            CurrentTime_Model(i)%Data_Line(i_mass),CurrentTime_Model(i)%Data_Line(i_logL), &
-            CurrentTime_Model(i)%Data_Line(i_logTeff_corr),CurrentTime_Model(i)%Data_Line(i_logTeff), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_VK),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_BV_noisy), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius),CurrentTime_Model(i)%Data_Line(i_oblat), &
-            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
-            log10(CurrentTime_Model(i)%Additional_Data_Line(i_mean_gravity)), &
-            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
-            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
-            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
-            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
-            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
-            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_Al26_Surf)
+          write(50,trim(Output_Format_Cluster)) TableToPrint(i,:4),CurrentTime_Model(i)%Is_a_Binary,TableToPrint(i,5:)
         enddo
-
       case(2)
-        write(50,'(a)') Header
+        write(50,'(a)') trim(Header)
         write(50,*)
         do i=1,Current_Number
-          write(50,Output_Format) CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
-            CurrentTime_Model(i)%Omega_Omcrit_ini,CurrentTime_Model(i)%Data_Line(i_mass), &
-            CurrentTime_Model(i)%Data_Line(i_logL),CurrentTime_Model(i)%Data_Line(i_logTeff_corr), &
-            CurrentTime_Model(i)%Data_Line(i_logTeff), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
-            CurrentTime_Model(i)%Additional_Data_Line(i_BC),CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius), &
-            CurrentTime_Model(i)%Data_Line(i_oblat),log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
-            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
-            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
-            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
-            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
-            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
-            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
-            CurrentTime_Model(i)%Data_Line(i_Al26_Surf)
+          write(50,trim(Output_Format)) TableToPrint(i,:)
         enddo
-
       case (3)
         write(50,'(a)') Header_Be
-        write(formatPop,'(a,i2,a)') '(es10.4,',Evolutionary_Values,'(3x,es10.4))'
+        
         do i=1,N_Time_step
-          write(50,trim(formatPop)) time_step_array(i),Evolution_Data(i,:)
+          write(50,trim(formatPop)) TableToPrint(i,:)
         enddo
-
       case (4)
         do i=1,2
           write(50,*)
         enddo
         do i=1,Table_Line_Number
-          if (iangle > 0) then
-            if (limb_dark > 0) then
-              CurrentTime_Model(i)%Data_Line(i_logL) = CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd)
-              CurrentTime_Model(i)%Data_Line(i_logTeff_corr) = CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd)
-            else
-              CurrentTime_Model(i)%Data_Line(i_logL) = CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd)
-              CurrentTime_Model(i)%Data_Line(i_logTeff_corr) = CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd)
-            endif
-          endif
-          write(50,Output_Format_Single) CurrentTime_Model(i)%star_ID,(CurrentTime_Model(i)%Data_Line(j),j=1,Data_Number), &
-            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius)/R_sun, &
-            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_MBol,i_BV), &
-            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_VR,i_Gflag), &
-            CurrentTime_Model(i)%Additional_Data_Line(i_BC)
+          write(50,Output_Format_Single) CurrentTime_Model(i)%star_ID,TableToPrint(i,:)
         enddo
       case default
         write(*,*) 'Should not occurs !'
@@ -5241,6 +5528,7 @@ contains
     close(50)
 
     deallocate(CurrentTime_Model)
+    deallocate(TableToPrint)
 
     return
 
@@ -5360,8 +5648,9 @@ contains
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: type_DataStructure,Table_Line_Number,i_logTeff,i_logL,i_logTeff_corr,i_time
-    use VariousParameters, only: IMF_type,Star_Z,Star_mass,Star_omega,Star_AoV,ivdist,age_log,fixed_metallicity, &
-      om_ivdist,star_number,Comp_Mode,iangle,Z_Number,mass_Number_array,Fixed_AoV,All_Data_Array
+    use VariousParameters, only: IMF_type,table_format,Star_Z,Star_mass,Star_omega,Star_AoV, &
+      ivdist,age_log,fixed_metallicity,om_ivdist,star_number,Comp_Mode,iangle,Z_Number, &
+      mass_Number_array,Fixed_AoV,All_Data_Array
     use LoopVariables, only:Z_Position,Z_factor,omega_Position,omega_factor,mass_Position,mass_factor, &
       Interpolated_Model,CurrentTime_Model
     use random, only: Z_RandomDraw,Mass_RandomDraw,Omega_RandomDraw,AoV_RandomDraw
@@ -5454,15 +5743,13 @@ contains
 
           ! Total mass in the cluster
           Cluster_mass = Cluster_mass + Star_mass
+          ! Once we have the model interpolated in mass and velocity, we extract and interpolate the data
+          ! at the current age of the cluster.
+          call Make_TimeModel(Interpolated_Model,age_log,CurrentTime_Model(Current_Number))
           ! Star_id is used to sort the stars by mass at the end of the process.
           CurrentTime_Model(Current_Number)%Star_ID = Current_Number
           ! Attribution of the angle of view
           CurrentTime_Model(Current_Number)%Angle_of_View = Star_AoV
-
-          ! Once we have the model interpolated in mass and velocity, we extract and interpolate the data
-          ! at the current age of the cluster.
-          call Make_TimeModel(Interpolated_Model,age_log,CurrentTime_Model(Current_Number))
-
           ! Computation of the additional quantities.
           call Compute_Additional(CurrentTime_Model(Current_Number))
 
@@ -5587,7 +5874,7 @@ contains
       call Count_Populations
     endif
 
-    call WriteResults
+    call WriteResults(table_format)
 
     return
 
@@ -5627,6 +5914,7 @@ contains
 
     select case (Comp_Mode)
       case (1)
+        write(*,*) 'starnumber: ',star_number
         allocate(CurrentTime_Model(star_number))
         write(*,*) 'Cluster mode, log(age)=',age_log
         write(*,*)
@@ -5768,9 +6056,9 @@ contains
           call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
                                       omega_factor,Interpolated_Binary)
 
+          call Make_TimeModel(Interpolated_Binary,age_log,Time_Binary)
           Time_Binary%Star_ID = 0
           Time_Binary%Angle_of_View = Time_Model%Angle_of_View
-          call Make_TimeModel(Interpolated_Binary,age_log,Time_Binary)
           call Compute_Additional(Time_Binary)
           ! Add the flux of the binary to the primary :
           M_B_Prim = Time_Model%Additional_Data_Line(i_BV) + Time_Model%Additional_Data_Line(i_MV)
