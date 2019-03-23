@@ -172,8 +172,6 @@ large_grids/Z014/M011p50Z14V00.dat
 large_grids/Z014/M011p50Z14V40.dat
 large_grids/Z014/M011p75Z14V00.dat
 large_grids/Z014/M011p75Z14V40.dat
-large_grids/Z014/M011p50Z14V00.dat
-large_grids/Z014/M011p75Z14V00.dat
 large_grids/Z014/M012p00Z14V00.dat
 large_grids/Z014/M012p00Z14V40.dat
 large_grids/Z014/M015p00Z14V00.dat

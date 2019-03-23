@@ -4157,7 +4157,7 @@ contains
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine Mass_RandomDraw(IMF,mass)
-    ! Random draw for the angular velocity (according to the chosen distribution)
+    ! Random draw for the mass (according to the chosen distribution)
     ! Note - case (1) : Salpeter IMF has been tested over a sample of 10^7 draws sucessfuly.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -5222,9 +5222,10 @@ contains
       Output_Format_Cluster_GE= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
                                          &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
                                          &f7.3,2x,f6.4,11(2x,e9.3))', &
-      Output_Format_Cluster_SE= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
-                                         &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
-                                         &f7.3,2x,f6.4,11(2x,e9.3))', &
+      Output_Format_Cluster_SE= '(f7.3,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,3(1x,f9.6),1x,f13.8,1x,f11.5,&
+      &1x,f5.2,1x,e10.3,1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),&
+      &16(1x,e11.4),1x,e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),&
+      &52(1x,e11.4)))', &
       Output_Format_Single_GE = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
                                   &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),&
                                   &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,16(2x,f7.3))', &
@@ -5272,14 +5273,25 @@ contains
                            &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
                            &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
                            &        O17        O18       Ne20       Ne22       Al26', &
-      Header_Cluster_SE = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
-                           &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
-                           &        MV       U-B       B-V       V-R       V-I&
-                           &       J-K       H-K       V-K     MV_n     B-V_n&
-                           &       G-V     Gbp-V     Grp-V     G_flag&
-                           &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
-                           &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
-                           &        O17        O18       Ne20       Ne22       Al26'
+      Header_Cluster_SE = '  M_ini     Z_ini  OmOc_ini Angle  Bin   M1/M2   lg(Teff)     lg(L) lg(Lgrav)&
+                   &             M           R lg(g)&
+                   &   rho_phot   lg(Mdot)    lg(Tc)    lg(Pc)  lg(rhoc)  lg(Tmax)  Mr(Tmax)lg(rhomax)&
+                   &    eps_nucl    eps_grav      eps_nu   Mr_b(CE)  R_b(CE)/R  lg(T_b)lg(rho_b)   Mr_t(CC)&
+                   &  R_t(CC)/R  lg(T_t)lg(rho_t)     tau_max      Ro_max       tau_g        Ro_g     tau_Hp2&
+                   &      Ro_Hp2      tau_Hp       Ro_Hp      tau_R2       Ro_R2      tau_M2       Ro_M2&
+                   &     k2_conv      k2_rad     Omega_s     Omega_c     Vsurf        Prot     J_act    J_core&
+                   &         OOc     Vcrit      torque    B_equi        D_nu    D_nu_ech    D_nu_err      nu_max&
+                   &   DPi_asym.   R_acc_tot   R_acc_BCE    R_acc_He     Mbol       BC      U-B      B-V      V-R&
+                   &      V-I      J-K      H-K      V-K      G-V    Gbp-V    Grp-V      M_U      M_B      M_V&
+                   &      M_R      M_I      M_H      M_J      M_K      M_G    M_Gbp    M_Grp         H1s&
+                   &         H2s        He3s        He4s        Li6s        Li7s        Be7s        Be9s&
+                   &        B10s        B11s        C12s        C13s        C14s        N14s        N15s&
+                   &        O16s        O17s        O18s        F19s       Ne20s       Ne21s       Ne22s&
+                   &       Na23s       Mg24s       Mg25s       Mg26s       Al26s       Al27s       Si28s&
+                   &         H1c         H2c        He3c        He4c        C12c        C13c        C14c&
+                   &        N14c        N15c        O16c        O17c        O18c        F19c       Ne20c&
+                   &       Ne21c       Ne22c       Na23c       Mg24c       Mg25c       Mg26c       Al26c&
+                   &       Al27c       Si28c'
 
     character(1)::Answer = 'k'
     character(256)::Output_FileName,formatPop
@@ -5389,7 +5401,6 @@ contains
         do i=1,N_Time_step
           TableToPrint(i,:) = (/time_step_array(i),Evolution_Data(i,:)/)
         enddo
-
       case (4) ! GENEC single model
         allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
         do i=1,Table_Line_Number
@@ -5410,7 +5421,13 @@ contains
             CurrentTime_Model(i)%Additional_Data_Line(i_BC)/)
         enddo
       case (5) ! starevol cluster
-        allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
+        allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,90.d0-CurrentTime_Model(i)%Angle_of_View*180.d0/pi, &
+            CurrentTime_Model(i)%mass_ratio, &
+            CurrentTime_Model(i)%Data_Line(2:)/)
+        enddo
       case (6) ! starevol isochrone
         allocate(TableToPrint(Current_Number,DataToPrint_Iso))
         do i=1,Current_Number
@@ -5477,14 +5494,13 @@ contains
 
     select case (Comp_Mode)
       case (1)
-        write(50,'(a)') 'WARNING: Note that in case of binary star, the B2-V1 color and the Teff are NOT the composite&
+        write(50,'(a)') 'WARNING: Note that in case of binary star, the colours and the Teff are NOT the composite&
                     & one, but only the primary ones !'
         write(50,'(a)') trim(Header_Cluster)
         write(50,*)
         do i=1,Current_Number
           write(50,trim(Output_Format_Cluster)) TableToPrint(i,:4),CurrentTime_Model(i)%Is_a_Binary,TableToPrint(i,5:)
         enddo
-
       case(2)
         write(50,'(a)') trim(Header)
         write(50,*)
@@ -5497,7 +5513,6 @@ contains
         do i=1,N_Time_step
           write(50,trim(formatPop)) TableToPrint(i,:)
         enddo
-
       case (4)
         do i=1,2
           write(50,*)
@@ -5728,15 +5743,13 @@ contains
 
           ! Total mass in the cluster
           Cluster_mass = Cluster_mass + Star_mass
+          ! Once we have the model interpolated in mass and velocity, we extract and interpolate the data
+          ! at the current age of the cluster.
+          call Make_TimeModel(Interpolated_Model,age_log,CurrentTime_Model(Current_Number))
           ! Star_id is used to sort the stars by mass at the end of the process.
           CurrentTime_Model(Current_Number)%Star_ID = Current_Number
           ! Attribution of the angle of view
           CurrentTime_Model(Current_Number)%Angle_of_View = Star_AoV
-
-          ! Once we have the model interpolated in mass and velocity, we extract and interpolate the data
-          ! at the current age of the cluster.
-          call Make_TimeModel(Interpolated_Model,age_log,CurrentTime_Model(Current_Number))
-
           ! Computation of the additional quantities.
           call Compute_Additional(CurrentTime_Model(Current_Number))
 
@@ -6043,9 +6056,9 @@ contains
           call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
                                       omega_factor,Interpolated_Binary)
 
+          call Make_TimeModel(Interpolated_Binary,age_log,Time_Binary)
           Time_Binary%Star_ID = 0
           Time_Binary%Angle_of_View = Time_Model%Angle_of_View
-          call Make_TimeModel(Interpolated_Binary,age_log,Time_Binary)
           call Compute_Additional(Time_Binary)
           ! Add the flux of the binary to the primary :
           M_B_Prim = Time_Model%Additional_Data_Line(i_BV) + Time_Model%Additional_Data_Line(i_MV)
