@@ -576,7 +576,7 @@ module VariousParameters
   integer,public,save::Cepheid_Number                           ! Cepheid number
   integer,public,save::FastRot_Number                           ! Fast rotators number
   integer,public,save::Z_Number                                 ! Metallicity number
-  integer,public,save::IMF_type = 1                             ! IMF. For now, only Salpeter (1) is allowed
+  integer,public,save::IMF_type = 1                             ! IMF. Salpeter (1), Kroupa (2)
   integer,public,save::Comp_Mode = 0                            ! Various computation mode : (1) cluster, (2)
                                                                 ! isochrone, (3) Population mode, (4) Single model
   integer,public,save::Colour_Calibration_mode = 2              ! Colour-Teff calibration (1) as in Paper I 2011,
@@ -4031,9 +4031,15 @@ module random
 
   implicit none
 
+  real(kind=8), parameter, private:: m0 = 0.01d0,m1 = 0.08d0,m2 = 0.5d0, alpha0 = 0.3d0, &
+                                     alpha1 = 1.3d0,alpha2 = 2.3, k0 = 1.d0
+                              
+  real(kind=8), private:: k1,k2,C0,C1,Phi_NN_Minf,Phi_NN_Msup,Phi1,Phi2
+
   public:: init_random
   public:: Omega_RandomDraw
   public:: Mass_RandomDraw
+  public:: Init_Kroupa_IMF
   public:: Z_RandomDraw
   public:: Binary_RandomDraw
   public:: Binary_Mass_RandomDraw
@@ -4159,6 +4165,7 @@ contains
   subroutine Mass_RandomDraw(IMF,mass)
     ! Random draw for the mass (according to the chosen distribution)
     ! Note - case (1) : Salpeter IMF has been tested over a sample of 10^7 draws sucessfuly.
+    ! Note - case (2) : Kroupa IMF has been tested over a sample of 10^5 draws sucessfuly.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use VariousParameters, only:m_IMF_inf,m_IMF_sup
@@ -4180,6 +4187,8 @@ contains
         Const_B = m_IMF_sup**(Salpeter_Slope + 1.d0) - Const_A
         ! Starting frome a random number between 0 and 1, we reconstruct the initial mass, inverting the IMF.
         mass = (Const_B*Random_Draw+Const_A)**(1.d0/(Salpeter_Slope+1.d0))
+      case (2) ! Kroupa IMF
+        mass = Get_Kroupa_IMF(Random_Draw)
       case default
         write(*,*) 'Bad IMF type.'
         stop
@@ -4188,6 +4197,113 @@ contains
     return
 
   end subroutine Mass_RandomDraw
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine Init_Kroupa_IMF()
+    ! Initialisation of various quantities related to the Kroupa IMF
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    use VariousParameters, only:m_IMF_inf,m_IMF_sup
+
+    implicit none    
+    
+    k1 = k0*(m1/m0)**(-alpha0)
+    k2 = k1*(m2/m1)**(-alpha1)
+    C0 = k0*m0**alpha0*Get_Parenthesis(m0,m1,alpha0)/(-alpha0+1.d0)
+    C1 = k1*m1**alpha1*Get_Parenthesis(m1,m2,alpha1)/(-alpha1+1.d0)
+    
+    ! Computes terms related to the normalisation of the cumulative distribution function:
+    Phi_NN_Minf = Cumulative_Distribution_NotNormalised(m_IMF_inf)
+    Phi_NN_Msup = Cumulative_Distribution_NotNormalised(m_IMF_sup)
+    Phi1 = Cumulative_Distribution_Normalised(m1)
+    Phi2 = Cumulative_Distribution_Normalised(m2)
+    
+    return
+  
+  end subroutine Init_Kroupa_IMF
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  real(kind=8) function Get_Kroupa_IMF(RD)
+    ! Random draw for the mass according to the Kroupa IMF
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    implicit none
+    
+    real(kind=8), intent(in):: RD
+    real(kind=8):: RN
+
+    RN = RD*(Phi_NN_Msup-Phi_NN_Minf) + Phi_NN_Minf
+    
+    if (RD < Phi1) then
+        Get_Kroupa_IMF = (RN*(1.d0-alpha0)/(k0*m0**alpha0) + m0**(-alpha0+1.d0))**(1.d0/(-alpha0+1.d0))
+    else if (RD < Phi2) then
+        Get_Kroupa_IMF = ((RN-C0)*(1.d0-alpha1)/(k1*m1**alpha1) + m1**(-alpha1+1.d0))**(1.d0/(-alpha1+1.d0))
+    else
+        Get_Kroupa_IMF = ((RN-C0-C1)*(1.d0-alpha2)/(k2*m2**alpha2) + m2**(-alpha2+1.d0))**(1.d0/(-alpha2+1.d0))
+    endif
+    
+    return
+
+  end function Get_Kroupa_IMF
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  real(kind=8)  function Get_Parenthesis(Mlow,Mhigh,alpha)
+    ! Computes (Mhigh**(-alpha + 1) - Mlow**(-alpha + 1))
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    implicit none
+    
+    real(kind=8), intent(in):: Mlow,Mhigh,alpha
+    
+    Get_Parenthesis = Mhigh**(-alpha+1.d0) - Mlow**(-alpha+1.d0)
+    
+    return
+    
+  end function Get_Parenthesis
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  real(kind=8)  function Cumulative_Distribution_NotNormalised(M)
+    ! Computes the non-normalised cumulative distribution function for the Kroupa IMF,
+    ! from m0 to M.
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    implicit none
+    
+    real(kind=8), intent(in):: M
+    
+    if (M < m1) then
+      Cumulative_Distribution_NotNormalised = k0*m0**alpha0*Get_Parenthesis(m0,M,alpha0)/(-alpha0+1.d0)
+    else if (M < m2) then
+      Cumulative_Distribution_NotNormalised = C0 + k1*m1**alpha1*Get_Parenthesis(m1,M,alpha1)/(-alpha1+1.d0)
+    else
+      Cumulative_Distribution_NotNormalised = C0 + C1 + k2*m2**alpha2*Get_Parenthesis(m2,M,alpha2)/(-alpha2+1.d0)
+    endif
+    
+    return
+    
+  end function Cumulative_Distribution_NotNormalised
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  real(kind=8)  function Cumulative_Distribution_Normalised(M)
+    ! Computes the normalised cumulative distribution function for the Kroupa IMF,
+    ! from 0 to 1.
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    implicit none
+    
+    real(kind=8), intent(in):: M
+    
+    Cumulative_Distribution_Normalised = &
+        (Cumulative_Distribution_NotNormalised(M)-Phi_NN_Minf)/(Phi_NN_Msup-Phi_NN_Minf)
+        
+    return
+    
+  end function Cumulative_Distribution_Normalised
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4308,7 +4424,8 @@ contains
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use VariousParameters, only:grid,m_IMF_inf,m_IMF_sup,i_Metallicity,fixed_metallicity,ivdist,om_ivdist,iangle, &
-      Fixed_AoV_latitude,grav_dark,limb_dark,binary_prob,inoise,sigma_mv,sigma_bv,Colour_Calibration_mode,PMS,table_format
+      Fixed_AoV_latitude,grav_dark,limb_dark,binary_prob,inoise,sigma_mv,sigma_bv,Colour_Calibration_mode,PMS,&
+      table_format,IMF_type
 
     implicit none
 
@@ -4320,7 +4437,7 @@ contains
     write(*,*) ''
     write(*,*) 'Cyril Georgy, Aurelien Wyttenbach,'
     write(*,*) 'Anahi Granada & Sylvia Ekstrom'
-    write(*,*) 'Last Version : March 14 2019'
+    write(*,*) 'Last Version : March 25 2019'
     write(*,*) '**********************************************'
     write(*,*)
     write(*,*) '**********************************************'
@@ -4337,7 +4454,15 @@ contains
     else
        write(*,*) 'Problems with the table format, should be 1 or 2.'
     endif
-    write(*,'(a,f6.2,a,f6.2,a)') ' -Salpeter IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
+    select case (IMF_type)
+      case (1)
+        write(*,'(a,f6.2,a,f6.2,a)') ' -Salpeter IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
+      case (2)
+        write(*,'(a,f6.2,a,f6.2,a)') ' -Kroupa IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
+      case default
+        write(*,*) 'Bad choice of IMF tyle, should not occur'
+        stop
+      end select
     write(*,*) 'Metallicity distribution :'
     select case (i_metallicity)
       case (0)
@@ -4512,8 +4637,8 @@ contains
       write(*,*)
       write(*,*) 'Parameters you can change:'
       write(*,'(a,a)') '1. Grid                                     ',grid
-      write(*,'(a,i1)') '2. Format of the tables                     ',table_format
-      write(*,'(a,l)') '3. Tables with PMS                          ',PMS
+      write(*,'(a,i1)') '2. Format of the tables                          ',table_format
+      write(*,'(a,l)') '3. Tables with PMS                               ',PMS
       write(*,'(a,i8)') '4. maximum number of star in the cluster  ',star_number
       write(*,'(a,i5)') '5. IMF type                                  ',IMF_type
       write(*,'(a,f6.2)') '6. minimum mass for IMF                     ',m_IMF_inf
@@ -4593,12 +4718,13 @@ contains
           read(*,*) star_number
         case(5)
           Temp_Var_Int=10
-          do while (Temp_Var_Int /= 1)
+          do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'What do you want for the IMF?'
             write(*,*) '1. Salpeter IMF'
+            write(*,*) '2. Kroupa IMF'
             read(5,*) Temp_Var_Int
-            if (Temp_Var_Int /= 1) then
-              write(*,*) 'Please enter 1.'
+            if (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2) then
+              write(*,*) 'Please enter 1 or 2.'
             endif
           enddo
           IMF_type=Temp_Var_Int
@@ -6410,8 +6536,8 @@ program PopStarII
 
   use DataStructure, only: verbose,Del_DataStructure
   use VariousParameters, only:Comp_Mode,init_AoV,ivdist,iangle,All_Data_Array,Z_Number,mass_Number_array, &
-                              omega_Number_array
-  use random, only:init_random
+                              omega_Number_array,IMF_type
+  use random, only:init_random,Init_Kroupa_IMF
   use ReadData, only:init_Huang,init_HG,init_external,init_Correction,init_VcritOmega,init_SurfaceOmega, &
                      init_Correct_fact,init_angle_external
   use InOut, only:Intro,AskChange,IsochroneMode
@@ -6457,6 +6583,9 @@ program PopStarII
   call init_AoV
   if (iangle == 4) then
     call init_angle_external
+  endif
+  if (IMF_type == 2) then! Initialise the Kroupa IMF
+    call Init_Kroupa_IMF()
   endif
 
   if (Comp_Mode == 2) then
