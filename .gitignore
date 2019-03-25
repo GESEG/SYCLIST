@@ -2,3 +2,4 @@
 *.mod
 *.paf
 *.pyc
+.DS_Store
