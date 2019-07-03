@@ -4798,7 +4798,7 @@ contains
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /=2 .and. &
             Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
             write(*,*) 'What do you want for the angle of view distribution ?'
-            write(*,*) '0. not take in account'
+            write(*,*) '0. not taken in account'
             write(*,*) '1. uniform'
             write(*,*) '2. sini'
             write(*,*) '3. Dirac (see parameter 7)'
@@ -5370,26 +5370,24 @@ contains
                          &        BC      r_pol   oblat   g_pol    Omega_S      v_eq   v_crit1&
                          &   v_crit2  Om/Om_cr lg(Md)  lg(Md_M) Ga_Ed H1         He4        C12        C13&
                          &        N14        O16        O17        O18        Ne20       Ne22       Al26', &
-      Header_SE = ' M_ini      Z_ini  OmOc_ini lg(Teff)     lg(L) lg(Lgrav)             M           R lg(g)&
-                   &   rho_phot   lg(Mdot)    lg(Tc)    lg(Pc)  lg(rhoc)  lg(Tmax)  Mr(Tmax)lg(rhomax)&
-                   &    eps_nucl    eps_grav      eps_nu   Mr_b(CE)  R_b(CE)/R  lg(T_b)lg(rho_b)   Mr_t(CC)&
-                   &  R_t(CC)/R  lg(T_t)lg(rho_t)     tau_max      Ro_max       tau_g        Ro_g     tau_Hp2&
-                   &      Ro_Hp2      tau_Hp       Ro_Hp      tau_R2       Ro_R2      tau_M2       Ro_M2&
-                   &   tau_max_c    Ro_max_c     tau_g_c      Ro_g_c   tau_Hp2_c&
-                   &    Ro_Hp2_c    tau_Hp_c     Ro_Hp_c    tau_R2_c     Ro_R2_c    tau_M2_c     Ro_M2_c&
-                   &     k2_conv      k2_rad     Omega_s     Omega_c     Vsurf        Prot     J_act    J_core&
-                   &         OOc     Vcrit      torque    B_equi        D_nu    D_nu_ech    D_nu_err      nu_max&
-                   &   DPi_asym.   R_acc_tot   R_acc_BCE    R_acc_He     Mbol       BC      U-B      B-V      V-R&
-                   &      V-I      J-K      H-K      V-K      G-V    Gbp-V    Grp-V      M_U      M_B      M_V&
-                   &      M_R      M_I      M_H      M_J      M_K      M_G    M_Gbp    M_Grp         H1s&
-                   &         H2s        He3s        He4s        Li6s        Li7s        Be7s        Be9s&
-                   &        B10s        B11s        C12s        C13s        C14s        N14s        N15s&
-                   &        O16s        O17s        O18s        F19s       Ne20s       Ne21s       Ne22s&
-                   &       Na23s       Mg24s       Mg25s       Mg26s       Al26s       Al27s       Si28s&
-                   &         H1c         H2c        He3c        He4c        C12c        C13c        C14c&
-                   &        N14c        N15c        O16c        O17c        O18c        F19c       Ne20c&
-                   &       Ne21c       Ne22c       Na23c       Mg24c       Mg25c       Mg26c       Al26c&
-                   &       Al27c       Si28c', &
+      Header_SE = ' M_ini    Z_ini  OmOc_ini  logTeff      logL  logLgrav             M           R  &
+                  &logg   rho_phot    logMdot     logTc     logPc   logrhoc   logTmax   Mr_Tmax  logrhomax   &
+                  &eps_nucl    eps_grav      eps_nu   Mr_b_CE  normR_b_CE   logT_b logrho_b   Mr_t_CC  normR_t_CC   &
+                  &logT_t logrho_t     tau_max      Ro_max       tau_g        Ro_g     tau_Hp2      Ro_Hp2      &
+                  &tau_Hp       Ro_Hp      tau_R2       Ro_R2      tau_M2       Ro_M2   tau_max_c    Ro_max_c     &
+                  &tau_g_c      Ro_g_c   tau_Hp2_c    Ro_Hp2_c    tau_Hp_c     Ro_Hp_c    tau_R2_c     Ro_R2_c    &
+                  &tau_M2_c     Ro_M2_c     k2_conv      k2_rad     Omega_s     Omega_c     Vsurf        Prot     &
+                  &J_act    J_core         OOc     Vcrit      torque    B_equi        D_nu    D_nu_ech    &
+                  &D_nu_err      nu_max   DPi_asym.   R_acc_tot   R_acc_BCE    R_acc_He     Mbol       BC      &
+                  &U-B      B-V      V-R      V-I      J-K      H-K      V-K      G-V    Gbp-V    Grp-V      &
+                  &M_U      M_B      M_V      M_R      M_I      M_H      M_J      M_K      M_G    M_Gbp    &
+                  &M_Grp         H1s         H2s        He3s        He4s        Li6s        Li7s        Be7s        &
+                  &Be9s        B10s        B11s        C12s        C13s        C14s        N14s        N15s        &
+                  &O16s        O17s        O18s        F19s       Ne20s       Ne21s       Ne22s       Na23s       &
+                  &Mg24s       Mg25s       Mg26s       Al26s       Al27s       Si28s         H1c         H2c        &
+                  &He3c        He4c        C12c        C13c        C14c        N14c        N15c        O16c        &
+                  &O17c        O18c        F19c       Ne20c       Ne21c       Ne22c       Na23c       Mg24c       &
+                  &Mg25c       Mg26c       Al26c       Al27c       Si28c', &
       Header_Be = '      time        #star       O-star       B-star       A-star       F-star&
                          &           Oe           Be           Ae           Fe       O > 50      O >  70&
                          &       O > 80       O > 90       O > 95       O > 98       B > 50      B >  70&
