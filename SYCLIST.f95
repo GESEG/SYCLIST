@@ -109,7 +109,7 @@ module DataStructure
     i_Na23_cen_SE,i_Mg24_cen_SE,i_Mg25_cen_SE,i_Mg26_cen_SE,i_Al26_cen_SE,i_Al27_cen_SE, &
     i_Si28_cen_SE/)
   integer,dimension(:),allocatable::positive,less_than_one
-    
+
   integer,parameter,public::Additional_Data_Number = 24  !WARNING : adapt this value to the number of data
                                                         !hereafter:
   integer,parameter,public::i_MBol=1,i_MV=2,i_UB=3,i_BV=4,i_B2V1=5,i_VR=6,i_VI=7,i_JK=8,i_HK=9,i_VK=10, &
@@ -1182,7 +1182,7 @@ contains
     ! Among the interpolated variables, some of them cannot physically overcome 1 or be negative. They are corrected here.
     call check0(New_Structure,size(positive),positive,Table_Line_Number)
     call check1(New_Structure,size(less_than_one),less_than_one,Table_Line_Number)
-    
+
     ! Delete intermediate strutures:
     call Del_DataStructure(Structure_Below)
     call Del_DataStructure(Structure_Above)
@@ -1358,7 +1358,7 @@ contains
         Interpolated_Model%Omega_Omcrit_ini
       stop
     endif
-    
+
     ! Here, the value which were put to -32 during the reading of the initial files are set back to 0.
     if (CurrentTime_Line%Data_Line(i_Mdot) < -25.d0) then
       CurrentTime_Line%Data_Line(i_Mdot) = 0.d0
@@ -1459,17 +1459,17 @@ contains
   subroutine check0(A_Structure,n,array_positive,n_lines)
   ! Check that variables that should remain positive behaves well during the interpolation process.
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     use DataStructure, only: type_DataStructure
-    
+
     implicit none
-  
+
     type(type_DataStructure), intent(inout):: A_Structure
     integer, intent(in):: n_lines,n
     integer, dimension(n):: array_positive
-    
+
     integer::i,j
-    
+
     do i=1,n_lines
       do j=1,n
         if (A_Structure%Data_Table(i,array_positive(j)) <= 0.d0) then
@@ -1477,7 +1477,7 @@ contains
         endif
       enddo
     enddo
-    
+
     return
 
   end subroutine check0
@@ -1487,17 +1487,17 @@ contains
   subroutine check1(A_Structure,n,array_less_than_one,n_lines)
   ! Check that variables that should be smaller than one behaves well during the interpolation process.
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
     use DataStructure, only: type_DataStructure
-    
+
     implicit none
-  
+
     type(type_DataStructure), intent(inout):: A_Structure
     integer, intent(in):: n_lines,n
     integer, dimension(n):: array_less_than_one
-    
+
     integer::i,j
-    
+
     do i=1,n_lines
       do j=1,n
         if (A_Structure%Data_Table(i,array_less_than_one(j)) >= 1.d0) then
@@ -1505,7 +1505,7 @@ contains
         endif
       enddo
     enddo
-    
+
     return
 
   end subroutine check1
@@ -1639,11 +1639,13 @@ contains
     implicit none
 
     integer:: i,error=0
+    integer,dimension(2):: pos_dot=(0,0),ind_break=(0,0),first=(0,0),second=(0,0)
     character(512):: ext_file=''
+    character(64):: line
+    character(32):: file_format
 
     write(*,*) 'Enter the name of the external file for OOc distribution'
     write(*,*) 'with path: '
-    write(*,*) 'NB: must have the format (f8.6,1x,f8.6)'
     read(5,*) ext_file
     write(*,*) 'reading from file',trim(ext_file)
 
@@ -1654,9 +1656,21 @@ contains
     error = 0
     n_ext = 0
     do
-      read(11,*,iostat=error)
+      read(11,'(a)',iostat=error) line
       if (error /= 0) then
         exit
+      else
+        if (n_ext == 0) then ! first line: definition of the format of the file to read it later
+          pos_dot(1) = index(line,'.')
+          ind_break(1) = pos_dot(1) + index(line(pos_dot(1)+1:),' ')
+          first(1) = ind_break(1) - 1
+          first(2) = first(1) - pos_dot(1)
+          pos_dot(2) = pos_dot(1) + (index(line(pos_dot(1)+1:),'.'))
+          ind_break(2) = pos_dot(2) + index(line(pos_dot(2)+1:),' ')
+          second(1) = ind_break(2) - ind_break(1)
+          second(2) = ind_break(2) - pos_dot(2) - 1
+          write(file_format,'("(f",i0,".",i0,",f",i0,".",i0,")")') first(1),first(2),second(1),second(2)
+        endif
       endif
       n_ext = n_ext+1
     enddo
@@ -1667,7 +1681,7 @@ contains
 
     error = 0
     do i=1,n_ext
-      read(11,'(f8.6,1x,f8.6)',iostat=error)omega_ext(i),dist_ext(i)
+      read(11,file_format,iostat=error)omega_ext(i),dist_ext(i)
       if (error /= 0) then
         exit
       endif
@@ -1688,11 +1702,13 @@ contains
     implicit none
 
     integer:: i,error
+    integer,dimension(2):: pos_dot=(0,0),ind_break=(0,0),first=(0,0),second=(0,0)
     character(512):: ext_file
+    character(64):: line
+    character(32):: file_format
 
     write(*,*) 'Enter the name of the external file for angle distribution'
     write(*,*) 'with path: '
-    write(*,*) 'NB: must have the format (1x,f4.1,2x,f5.3)'
     read(5,*) ext_file
 
     open(unit=11,file=trim(ext_file),iostat=error,status='old')
@@ -1702,9 +1718,21 @@ contains
     error = 0
     n_angle_ext = 0
     do
-      read(11,*,iostat=error)
+      read(11,'(a)',iostat=error) line
       if (error /= 0) then
         exit
+      else
+        if (n_angle_ext == 0) then
+          pos_dot(1) = index(line,'.')
+          ind_break(1) = pos_dot(1) + index(line(pos_dot(1)+1:),' ')
+          first(1) = ind_break(1) - 1
+          first(2) = first(1) - pos_dot(1)
+          pos_dot(2) = pos_dot(1) + (index(line(pos_dot(1)+1:),'.'))
+          ind_break(2) = pos_dot(2) + index(line(pos_dot(2)+1:),' ')
+          second(1) = ind_break(2) - ind_break(1)
+          second(2) = ind_break(2) - pos_dot(2) - 1
+          write(file_format,'("(f",i0,".",i0,",f",i0,".",i0,")")') first(1),first(2),second(1),second(2)
+        endif
       endif
       n_angle_ext = n_angle_ext+1
     enddo
@@ -1715,7 +1743,7 @@ contains
 
     error = 0
     do i=1,n_angle_ext
-      read(11,'(1x,f4.1,2x,f5.3)',iostat=error)angle_ext(i),angle_dist_ext(i)
+      read(11,file_format,iostat=error)angle_ext(i),angle_dist_ext(i)
       if (error /= 0) then
         exit
       endif
@@ -2034,7 +2062,7 @@ contains
     else
         Model%Additional_Data_Line(i_Gflag) = 1.d0
     endif
-    
+
     ! When using starevol format, the colours are interpolated as the other quantities (they are already in
     ! the tables). However, we prefer here to recompute them to be coherent.
     if (table_format == 2) then
@@ -2553,10 +2581,10 @@ contains
     type(type_TimeModel):: Current_Line
 
     integer:: i
-    
+
     ! Initialisation of Current_Line
     call Init_TimeModel(Data_Number,Current_Line)
-    
+
     do i=1,Dimen
       Current_Line%star_ID = i
       Current_Line%Is_a_Binary = 0
@@ -4039,7 +4067,7 @@ module random
 
   real(kind=8), parameter, private:: m0 = 0.01d0,m1 = 0.08d0,m2 = 0.5d0, alpha0 = 0.3d0, &
                                      alpha1 = 1.3d0,alpha2 = 2.3, k0 = 1.d0
-                              
+
   real(kind=8), private:: k1,k2,C0,C1,Phi_NN_Minf,Phi_NN_Msup,Phi1,Phi2
 
   public:: init_random
@@ -4211,21 +4239,21 @@ contains
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     use VariousParameters, only:m_IMF_inf,m_IMF_sup
 
-    implicit none    
-    
+    implicit none
+
     k1 = k0*(m1/m0)**(-alpha0)
     k2 = k1*(m2/m1)**(-alpha1)
     C0 = k0*m0**alpha0*Get_Parenthesis(m0,m1,alpha0)/(-alpha0+1.d0)
     C1 = k1*m1**alpha1*Get_Parenthesis(m1,m2,alpha1)/(-alpha1+1.d0)
-    
+
     ! Computes terms related to the normalisation of the cumulative distribution function:
     Phi_NN_Minf = Cumulative_Distribution_NotNormalised(m_IMF_inf)
     Phi_NN_Msup = Cumulative_Distribution_NotNormalised(m_IMF_sup)
     Phi1 = Cumulative_Distribution_Normalised(m1)
     Phi2 = Cumulative_Distribution_Normalised(m2)
-    
+
     return
-  
+
   end subroutine Init_Kroupa_IMF
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -4233,14 +4261,14 @@ contains
   real(kind=8) function Get_Kroupa_IMF(RD)
     ! Random draw for the mass according to the Kroupa IMF
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     implicit none
-    
+
     real(kind=8), intent(in):: RD
     real(kind=8):: RN
 
     RN = RD*(Phi_NN_Msup-Phi_NN_Minf) + Phi_NN_Minf
-    
+
     if (RD < Phi1) then
         Get_Kroupa_IMF = (RN*(1.d0-alpha0)/(k0*m0**alpha0) + m0**(-alpha0+1.d0))**(1.d0/(-alpha0+1.d0))
     else if (RD < Phi2) then
@@ -4248,7 +4276,7 @@ contains
     else
         Get_Kroupa_IMF = ((RN-C0-C1)*(1.d0-alpha2)/(k2*m2**alpha2) + m2**(-alpha2+1.d0))**(1.d0/(-alpha2+1.d0))
     endif
-    
+
     return
 
   end function Get_Kroupa_IMF
@@ -4259,15 +4287,15 @@ contains
   real(kind=8)  function Get_Parenthesis(Mlow,Mhigh,alpha)
     ! Computes (Mhigh**(-alpha + 1) - Mlow**(-alpha + 1))
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     implicit none
-    
+
     real(kind=8), intent(in):: Mlow,Mhigh,alpha
-    
+
     Get_Parenthesis = Mhigh**(-alpha+1.d0) - Mlow**(-alpha+1.d0)
-    
+
     return
-    
+
   end function Get_Parenthesis
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -4276,11 +4304,11 @@ contains
     ! Computes the non-normalised cumulative distribution function for the Kroupa IMF,
     ! from m0 to M.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     implicit none
-    
+
     real(kind=8), intent(in):: M
-    
+
     if (M < m1) then
       Cumulative_Distribution_NotNormalised = k0*m0**alpha0*Get_Parenthesis(m0,M,alpha0)/(-alpha0+1.d0)
     else if (M < m2) then
@@ -4288,9 +4316,9 @@ contains
     else
       Cumulative_Distribution_NotNormalised = C0 + C1 + k2*m2**alpha2*Get_Parenthesis(m2,M,alpha2)/(-alpha2+1.d0)
     endif
-    
+
     return
-    
+
   end function Cumulative_Distribution_NotNormalised
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -4299,16 +4327,16 @@ contains
     ! Computes the normalised cumulative distribution function for the Kroupa IMF,
     ! from 0 to 1.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
     implicit none
-    
+
     real(kind=8), intent(in):: M
-    
+
     Cumulative_Distribution_Normalised = &
         (Cumulative_Distribution_NotNormalised(M)-Phi_NN_Minf)/(Phi_NN_Msup-Phi_NN_Minf)
-        
+
     return
-    
+
   end function Cumulative_Distribution_Normalised
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -5342,7 +5370,7 @@ contains
     implicit none
 
     integer, intent(in):: write_mode
-    
+
     integer::error,i,j
 
     character(*),parameter:: Output_Format_GE= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,17(2x,f8.4),2x,1pe9.3,&
@@ -5431,13 +5459,12 @@ contains
     character(256)::Output_FileName,formatPop
     character(512)::Output_Format,Output_Format_Single,Output_Format_Cluster
     character(2048)::Header,Header_Cluster
-    
+
     integer:: DataToPrint_Single = -1, DataToPrint_Iso = -1, DataToPrint_Cluster = -1, bigswitch = -1
     integer,parameter:: DataToPrint_Single_GE = 58,DataToPrint_Iso_GE = 43,DataToPrint_Cluster_GE = 51
     integer,parameter:: DataToPrint_Single_SE = 145,DataToPrint_Iso_SE = 147,DataToPrint_Cluster_SE = 149
-    
     real(kind=8),dimension(:,:),allocatable::TableToPrint
-        
+
     ! Perform some stuff related to the writing mode:
     select case (write_mode)
       case (1)
@@ -5465,7 +5492,7 @@ contains
         write(*,*) 'Unexpected problem in writing format. Check.'
         stop
     end select
-    
+
     ! Allocate the memory for the data to be printed.
     ! Here, we set a new integer for switching mode to cover the whole possible options:
     ! so far, 4 computing modes and 2 formats. 1-4 are GENEC, and 5-8 are starevol
@@ -5580,7 +5607,7 @@ contains
         write(*,*) 'Unexpected mode...'
         stop
     end select
-    
+
     ! Attribution of a file name.
     select case (Comp_Mode)
       case (1)
@@ -5643,7 +5670,7 @@ contains
         enddo
       case (3)
         write(50,'(a)') Header_Be
-        
+
         do i=1,N_Time_step
           write(50,trim(formatPop)) TableToPrint(i,:)
         enddo
