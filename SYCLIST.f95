@@ -3392,6 +3392,9 @@ contains
       mean_mass = (Mass_Interfaces(i) + Mass_Interfaces(i+1))/2.d0
       do j=1,Pop_Omega_Beam_Number
         select case (ivdist)
+          case (0)
+            Number_of_Star_Beam(i,j) = N_star_mass*(Omega_Number_interfaces(j+1,1) - Omega_Number_interfaces(j,1))/ &
+              Normalisation_Omega(1)
           case (1)
             if (mean_mass < Huang_m_limit(1)) then
               Number_of_Star_Beam(i,j) = (Omega_Number_interfaces(j+1,1) - Omega_Number_interfaces(j,1))/ &
@@ -3411,6 +3414,9 @@ contains
             if (Velocity_Interfaces(j) <= om_ivdist .and. Velocity_Interfaces(j+1) > om_ivdist) then
               Number_of_Star_Beam(i,j) = N_star_mass
             endif
+          case (4)
+            Number_of_Star_Beam(i,j) = N_star_mass*(Omega_Number_interfaces(j+1,1) - Omega_Number_interfaces(j,1))/ &
+              Normalisation_Omega(1)
           case default
             write(*,*) 'The mode "Population computation" need an omega distribution of Huang or Huang & Gies...'
             stop
@@ -3463,7 +3469,8 @@ contains
 
     use VariousParameters, only: ivdist
     use interpolmod, only: Linear_Interp
-    use ReadData, only: n_Huang,omega_Huang,dist_Huang_1,dist_Huang_2,dist_Huang_3,n_HG,omega_HG,dist_HG
+    use ReadData, only: n_Huang,omega_Huang,dist_Huang_1,dist_Huang_2,dist_Huang_3,n_HG,omega_HG,dist_HG, &
+                        n_ext,omega_ext,dist_ext
 
     implicit none
 
@@ -3474,6 +3481,13 @@ contains
       ! For each boarding value of the velocity (at the edge of each beam), we compute the value of the omega cumulative
       ! distribution.
       ! The normalisation is also computed.
+      case(0)
+        do i=1,Pop_Omega_Beam_Number
+          Omega_Number_interfaces(i,1) = Velocity_Interfaces(i)
+        enddo
+        Omega_Number_interfaces(Pop_Omega_Beam_Number+1,1) = 1.d0
+        Normalisation_Omega(1) = 1.d0
+
       case(1)
         do i=1,Pop_Omega_Beam_Number
           Omega_Number_interfaces(i,1) = Linear_Interp(Velocity_Interfaces(i),n_Huang,omega_Huang,dist_Huang_1)
@@ -3496,6 +3510,13 @@ contains
         Normalisation_Omega(1) = dist_HG(n_HG) -dist_HG(1)
 
       case(3)
+      
+      case(4)
+        do i=1,Pop_Omega_Beam_Number
+          Omega_Number_interfaces(i,1) = Linear_Interp(Velocity_Interfaces(i),n_ext,omega_ext,dist_ext)
+        enddo
+        Omega_Number_interfaces(Pop_Omega_Beam_Number+1,1) = 1.d0
+        Normalisation_Omega(1) = dist_ext(n_ext) -dist_ext(1)
 
       case default
         write(*,*) 'In population study mode, ivdist = 1 or 2 is mandatory !'
@@ -3599,8 +3620,8 @@ contains
 !                                HRD_L_min = (/-3.d0, -2.d0/),HRD_L_max = (/0.5d0, 0.5d0/)
 !    real(Kind=8), dimension(2)::HRD_Teff_min = (/0.d0, -0.d0/),HRD_Teff_max = (/450.d0, 450.d0/), &
 !                                HRD_L_min = (/7.75d0, 7.75d0/),HRD_L_max = (/10.75d0, 10.75d0/)
-    real(Kind=8), dimension(2)::HRD_Teff_min = (/0.6d0, 0.6d0/),HRD_Teff_max = (/2.5d0, 2.5d0/), &
-                                HRD_L_min = (/-11.5d0, -11.5d0/),HRD_L_max = (/-4.d0, -4.d0/)
+    real(Kind=8), dimension(2)::HRD_Teff_min = (/3.55d0, 2.4d0/),HRD_Teff_max = (/3.85d0, 3.0d0/), &
+                                HRD_L_min = (/1.4d0, 0.d0/),HRD_L_max = (/3.3d0, 1.d0/)
     real(kind=8), dimension(HRD_cell_number,HRD_cell_number,2):: HRD_count
 
     integer:: i,j,k,l
@@ -3890,28 +3911,35 @@ contains
 !                  HRD_count1(Teff_coord,L_coord) = HRD_count1(Teff_coord,L_coord) + Number_of_Star_Beam(j,k)
 !                endif
 !              endif
-!              do l=1,2
-              do l=1,1
+              do l=1,2
+!              do l=1,1
 !                L_coord = floor((Time_Step_data(j,k,i,i_tsdata_MV)-HRD_L_min(l))/Delta_L(l))+1
 !                Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_BV)-HRD_Teff_min(l))/Delta_Teff(l))+1
 !                Additional_Var = log10(Time_Step_data(j,k,i,i_tsdata_N)/14.d0)-log10(Time_Step_data(j,k,i,i_tsdata_H))+12.d0
-                Teff_coord = floor((Additional_Var-HRD_Teff_min(l))/Delta_Teff(l))+1
-                L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mbol)-HRD_L_min(l))/Delta_L(l))+1
+                ! Patrick stuff for RG:
+                if (l == 1) then
+                    Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_Teff)-HRD_Teff_min(l))/Delta_Teff(l))+1
+                    L_coord = floor((Time_Step_data(j,k,i,i_tsdata_L)-HRD_L_min(l))/Delta_L(l))+1
+                else
+                    Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mass)-HRD_Teff_min(l))/Delta_Teff(l))+1
+                    L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Om_OmCr)-HRD_L_min(l))/Delta_L(l))+1
+                endif
+!                L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mbol)-HRD_L_min(l))/Delta_L(l))+1
 !                L_coord = floor((Additional_Var-HRD_L_min(l))/Delta_L(l))+1
 !                Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_vsurf)-HRD_Teff_min(l))/Delta_Teff(l))+1
               ! Check that the coordinates are in the right range
                 if (L_coord>0 .and. L_coord<HRD_cell_number .and. Teff_coord>0 .and. Teff_coord<HRD_cell_number) then
 !                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) >= 1.d-5) then
-                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) < 1.d-5 .and. &
-                      Time_Step_data(j,k,i,i_tsdata_Teff) >= 3.9d0 .and. &
-                      Time_Step_data(j,k,i,i_tsdata_Teff) <= 4.4d0 .and. &
-                      .not. is_WR) then
-                    if (Teff_min(j,k) <= 3.8d0 .and. time_step_array(i) >= Teff_min_time(j,k)) then
-                      HRD_count(Teff_coord,L_coord,2) = HRD_count(Teff_coord,L_coord,2) + Number_of_Star_Beam(j,k)
-                    else
-                      HRD_count(Teff_coord,L_coord,1) = HRD_count(Teff_coord,L_coord,1) + Number_of_Star_Beam(j,k)
-                    endif
-                  endif
+!                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) < 1.d-5 .and. &
+!                      Time_Step_data(j,k,i,i_tsdata_Teff) >= 3.9d0 .and. &
+!                      Time_Step_data(j,k,i,i_tsdata_Teff) <= 4.4d0 .and. &
+!                      .not. is_WR) then
+!                    if (Teff_min(j,k) <= 3.8d0 .and. time_step_array(i) >= Teff_min_time(j,k)) then
+                      HRD_count(Teff_coord,L_coord,l) = HRD_count(Teff_coord,L_coord,l) + Number_of_Star_Beam(j,k)
+!                    else
+!                      HRD_count(Teff_coord,L_coord,1) = HRD_count(Teff_coord,L_coord,1) + Number_of_Star_Beam(j,k)
+!                    endif
+!                  endif
                 endif
               enddo
             endif
@@ -3936,12 +3964,12 @@ contains
 !            endif
 !          enddo
 !        enddo
-        Name_Extension = "BSG1"
+        Name_Extension = "HRD"
         !Name_Extension = "RSG"
         !Name_Extension = "HunterPlot"
         call WriteResultsMovie(HRD_count(:,:,1),HRD_Teff_min(1),HRD_L_min(1), &
                                Delta_Teff(1),Delta_L(1),HRD_cell_number,i,Name_Extension)
-        Name_Extension = "BSG2"
+        Name_Extension = "MOmega"
 !        Name_Extension = "MSTO"
         call WriteResultsMovie(HRD_count(:,:,2),HRD_Teff_min(2),HRD_L_min(2), &
                                Delta_Teff(2),Delta_L(2),HRD_cell_number,i,Name_Extension)
@@ -4595,7 +4623,8 @@ contains
     ! Ask if parameters are changed or not.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use VariousParameters, only: Comp_Mode,table_format
+    use VariousParameters, only: Comp_Mode,table_format,ivdist
+    use ReadData, only: init_external
 
     implicit none
 
@@ -4628,6 +4657,11 @@ contains
         Comp_Mode = -1
       endif
     enddo
+    
+    if (ivdist == 4) then
+      call init_external
+    endif
+
 
     select case (Comp_Mode)
       case (1,2)
@@ -6573,7 +6607,7 @@ program PopStarII
   use VariousParameters, only:Comp_Mode,init_AoV,ivdist,iangle,All_Data_Array,Z_Number,mass_Number_array, &
                               omega_Number_array,IMF_type
   use random, only:init_random,Init_Kroupa_IMF
-  use ReadData, only:init_Huang,init_HG,init_external,init_Correction,init_VcritOmega,init_SurfaceOmega, &
+  use ReadData, only:init_Huang,init_HG,init_Correction,init_VcritOmega,init_SurfaceOmega, &
                      init_Correct_fact,init_angle_external
   use InOut, only:Intro,AskChange,IsochroneMode
   use InterpolationLoop, only:MainLoop
@@ -6612,9 +6646,6 @@ program PopStarII
   ! Introduction and choice of parameters
   call Intro
   call AskChange
-  if (ivdist == 4) then
-    call init_external
-  endif
   call init_AoV
   if (iangle == 4) then
     call init_angle_external
