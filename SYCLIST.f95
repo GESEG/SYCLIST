@@ -2055,6 +2055,7 @@ contains
                                                     + 0.036550d0*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GbpV) = -0.05204d0 + 0.483000d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0
+                                                    + 0.02186*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GrpV) =  0.00024280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.028660d0*Model%Additional_Data_Line(i_VI)**2.d0
     if (Model%Additional_Data_Line(i_VI) >= -0.3d0 .and. Model%Additional_Data_Line(i_VI) <= 2.7d0) then
@@ -3287,11 +3288,11 @@ module Population_Mode
 
   implicit none
 
-  integer,public,parameter:: Time_Step_data_Number = 16          ! Number of data stored in the Time_Step_data array.
+  integer,public,parameter:: Time_Step_data_Number = 17          ! Number of data stored in the Time_Step_data array.
   integer,public,parameter:: i_tsdata_Teff = 1, i_tsdata_L = 2, i_tsdata_Om_OmCr = 3, i_tsdata_v_vCr = 4, &
     i_tsdata_H = 5, i_tsdata_He = 6,i_tsdata_C = 7, i_tsdata_N = 8, i_tsdata_O = 9, &
     i_tsdata_Mass = 10, i_tsdata_MV = 11,i_tsdata_Hcen = 12, i_tsdata_Mbol = 13, &
-    i_tsdata_Mass_ini=14,i_tsdata_BV = 15, i_tsdata_vsurf = 16
+    i_tsdata_Mass_ini=14,i_tsdata_BV = 15, i_tsdata_vsurf = 16, i_Omega_Omcrit_ini = 17
                                                                 ! WARNING ! If changed, adapt
                                                                 ! also the value of Time_Step_data_Number.
   integer,public,parameter:: Evolutionary_Values = 50           ! Number of variables that we want to follow as a
@@ -3561,6 +3562,7 @@ contains
       else
         call Make_TimeModel(Model,age_log,TimeModel)
         call Compute_Additional(TimeModel)
+        Time_Step_data(Coord1,Coord2,i,i_Omega_Omcrit_ini) = TimeModel%Omega_Omcrit_ini
         Time_Step_data(Coord1,Coord2,i,i_tsdata_Teff) = TimeModel%Data_Line(i_logTeff_corr)
         Time_Step_data(Coord1,Coord2,i,i_tsdata_L) = TimeModel%Data_Line(i_logL)
         Time_Step_data(Coord1,Coord2,i,i_tsdata_Om_OmCr) = TimeModel%Data_Line(i_Omega_Omcrit)
@@ -3620,8 +3622,10 @@ contains
 !                                HRD_L_min = (/-3.d0, -2.d0/),HRD_L_max = (/0.5d0, 0.5d0/)
 !    real(Kind=8), dimension(2)::HRD_Teff_min = (/0.d0, -0.d0/),HRD_Teff_max = (/450.d0, 450.d0/), &
 !                                HRD_L_min = (/7.75d0, 7.75d0/),HRD_L_max = (/10.75d0, 10.75d0/)
-    real(Kind=8), dimension(2)::HRD_Teff_min = (/3.55d0, 2.4d0/),HRD_Teff_max = (/3.85d0, 3.0d0/), &
-                                HRD_L_min = (/1.4d0, 0.d0/),HRD_L_max = (/3.3d0, 1.d0/)
+!    real(Kind=8), dimension(2)::HRD_Teff_min = (/3.55d0, 3.55d0/),HRD_Teff_max = (/3.85d0, 3.85d0/), &
+!                                HRD_L_min = (/1.4d0, 1.4d0/),HRD_L_max = (/3.3d0, 3.3d0/)
+    real(Kind=8), dimension(2)::HRD_Teff_min = (/3.55d0, 3.55d0/),HRD_Teff_max = (/3.65d0, 3.65d0/), &
+                                HRD_L_min = (/3.5d0, 3.5d0/),HRD_L_max = (/5.5d0, 5.5d0/)
     real(kind=8), dimension(HRD_cell_number,HRD_cell_number,2):: HRD_count
 
     integer:: i,j,k,l
@@ -3911,33 +3915,36 @@ contains
 !                  HRD_count1(Teff_coord,L_coord) = HRD_count1(Teff_coord,L_coord) + Number_of_Star_Beam(j,k)
 !                endif
 !              endif
-              do l=1,2
-!              do l=1,1
+!              do l=1,2
+              do l=1,1
 !                L_coord = floor((Time_Step_data(j,k,i,i_tsdata_MV)-HRD_L_min(l))/Delta_L(l))+1
 !                Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_BV)-HRD_Teff_min(l))/Delta_Teff(l))+1
 !                Additional_Var = log10(Time_Step_data(j,k,i,i_tsdata_N)/14.d0)-log10(Time_Step_data(j,k,i,i_tsdata_H))+12.d0
                 ! Patrick stuff for RG:
-                if (l == 1) then
-                    Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_Teff)-HRD_Teff_min(l))/Delta_Teff(l))+1
-                    L_coord = floor((Time_Step_data(j,k,i,i_tsdata_L)-HRD_L_min(l))/Delta_L(l))+1
-                else
-                    Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mass)-HRD_Teff_min(l))/Delta_Teff(l))+1
-                    L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Om_OmCr)-HRD_L_min(l))/Delta_L(l))+1
-                endif
+               Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_Teff)-HRD_Teff_min(l))/Delta_Teff(l))+1
+               L_coord = floor((Time_Step_data(j,k,i,i_tsdata_L)-HRD_L_min(l))/Delta_L(l))+1
+!               if (l == 1) then
+!                    Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_Teff)-HRD_Teff_min(l))/Delta_Teff(l))+1
+!                    L_coord = floor((Time_Step_data(j,k,i,i_tsdata_L)-HRD_L_min(l))/Delta_L(l))+1
+!                else
+!                    Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mass)-HRD_Teff_min(l))/Delta_Teff(l))+1
+!                    L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Om_OmCr)-HRD_L_min(l))/Delta_L(l))+1
+!                endif
 !                L_coord = floor((Time_Step_data(j,k,i,i_tsdata_Mbol)-HRD_L_min(l))/Delta_L(l))+1
 !                L_coord = floor((Additional_Var-HRD_L_min(l))/Delta_L(l))+1
 !                Teff_coord = floor((Time_Step_data(j,k,i,i_tsdata_vsurf)-HRD_Teff_min(l))/Delta_Teff(l))+1
               ! Check that the coordinates are in the right range
-                if (L_coord>0 .and. L_coord<HRD_cell_number .and. Teff_coord>0 .and. Teff_coord<HRD_cell_number) then
+                if (L_coord>0 .and. L_coord<=HRD_cell_number .and. Teff_coord>0 .and. Teff_coord<=HRD_cell_number) then
 !                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) >= 1.d-5) then
 !                  if (Time_Step_data(j,k,i,i_tsdata_Hcen) < 1.d-5 .and. &
 !                      Time_Step_data(j,k,i,i_tsdata_Teff) >= 3.9d0 .and. &
 !                      Time_Step_data(j,k,i,i_tsdata_Teff) <= 4.4d0 .and. &
 !                      .not. is_WR) then
 !                    if (Teff_min(j,k) <= 3.8d0 .and. time_step_array(i) >= Teff_min_time(j,k)) then
-                      HRD_count(Teff_coord,L_coord,l) = HRD_count(Teff_coord,L_coord,l) + Number_of_Star_Beam(j,k)
+!                    if (Time_Step_data(j,k,i,i_Omega_Omcrit_ini) >= 0.4d0) then
+                      HRD_count(Teff_coord,L_coord,1) = HRD_count(Teff_coord,L_coord,1) + Number_of_Star_Beam(j,k)
 !                    else
-!                      HRD_count(Teff_coord,L_coord,1) = HRD_count(Teff_coord,L_coord,1) + Number_of_Star_Beam(j,k)
+!                      HRD_count(Teff_coord,L_coord,2) = HRD_count(Teff_coord,L_coord,2) + Number_of_Star_Beam(j,k)
 !                    endif
 !                  endif
                 endif
@@ -3964,15 +3971,15 @@ contains
 !            endif
 !          enddo
 !        enddo
-        Name_Extension = "HRD"
+        Name_Extension = "RSGRotDistri"
         !Name_Extension = "RSG"
         !Name_Extension = "HunterPlot"
         call WriteResultsMovie(HRD_count(:,:,1),HRD_Teff_min(1),HRD_L_min(1), &
                                Delta_Teff(1),Delta_L(1),HRD_cell_number,i,Name_Extension)
-        Name_Extension = "MOmega"
+        Name_Extension = "HRDm40"
 !        Name_Extension = "MSTO"
-        call WriteResultsMovie(HRD_count(:,:,2),HRD_Teff_min(2),HRD_L_min(2), &
-                               Delta_Teff(2),Delta_L(2),HRD_cell_number,i,Name_Extension)
+!        call WriteResultsMovie(HRD_count(:,:,2),HRD_Teff_min(2),HRD_L_min(2), &
+!                               Delta_Teff(2),Delta_L(2),HRD_cell_number,i,Name_Extension)
       endif
 
     enddo
