@@ -2054,7 +2054,7 @@ contains
                                                     - 0.281000d0*Model%Additional_Data_Line(i_VI)**2.d0 &
                                                     + 0.036550d0*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GbpV) = -0.05204d0 + 0.483000d0*Model%Additional_Data_Line(i_VI) &
-                                                    - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0
+                                                    - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0 &
                                                     + 0.02186*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GrpV) =  0.00024280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.028660d0*Model%Additional_Data_Line(i_VI)**2.d0
@@ -3511,7 +3511,7 @@ contains
         Normalisation_Omega(1) = dist_HG(n_HG) -dist_HG(1)
 
       case(3)
-      
+
       case(4)
         do i=1,Pop_Omega_Beam_Number
           Omega_Number_interfaces(i,1) = Linear_Interp(Velocity_Interfaces(i),n_ext,omega_ext,dist_ext)
@@ -4664,7 +4664,7 @@ contains
         Comp_Mode = -1
       endif
     enddo
-    
+
     if (ivdist == 4) then
       call init_external
     endif
