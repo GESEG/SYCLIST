@@ -3,13 +3,14 @@ import os
 import datetime
 import numpy as np
 from scipy.interpolate import interp1d
+from six.moves import input
 
 try:
     Prog = os.environ['SYCLIST_PROG']
     working_dir = os.environ['CLUSTER_DIR']
 except KeyError:
-    Prog = raw_input('You did not yet set the needed environment variables.\nEnter the path to the SYCLIST program(full path): ')
-    working_dir = raw_input('Enter the path to the clusters computation folder: ')
+    Prog = input('You did not yet set the needed environment variables.\nEnter the path to the SYCLIST program(full path): ')
+    working_dir = input('Enter the path to the clusters computation folder: ')
     os.environ['SYCLIST_PROG'] = Prog
     os.environ['CLUSTER_DIR'] = working_dir
     bp = open(os.path.expanduser('~/.bash_profile'),'a')
@@ -43,67 +44,67 @@ if first[0] != '-':
   ClusterFile.readline()
 user_name = ClusterFile.readline().lstrip().rstrip()
 user_name = user_name[0:user_name.rfind('@')].replace('Cluster request from ','').lstrip()
-print 'Cluster request from ',user_name
+print('Cluster request from '+user_name)
 ClusterFile.readline()
 grids = ClusterFile.readline().lstrip().rstrip()
 grids = grids.replace('Grids:','').lstrip()
-print 'Grids: ',grids
+print('Grids: '+grids)
 metallicity = ClusterFile.readline().lstrip().rstrip()
 metallicity = float(metallicity.replace('Metallicity:','').lstrip())
-print 'Metallicity: ',str(metallicity)
+print('Metallicity: '+str(metallicity))
 age = ClusterFile.readline().lstrip().rstrip()
 age = float(age.replace('Cluster age:','').lstrip())
-print 'Age: ',str(age)
+print('Age: '+str(age))
 star_number = ClusterFile.readline().lstrip().rstrip()
 star_number = int(star_number.replace('Star number:','').lstrip())
-print 'Star number: ',str(star_number)
+print('Star number: '+str(star_number))
 ClusterFile.readline()
 rotation_distrib = ClusterFile.readline().lstrip().rstrip()
 rotation_distrib = rotation_distrib.replace('Rotation distribution:','').lstrip()
-print 'Rotation distribution: ',rotation_distrib
+print('Rotation distribution: '+rotation_distrib)
 if rotation_distrib == 'Dirac':
     rotation_rate = ClusterFile.readline().lstrip().rstrip()
     rotation_rate = float(rotation_rate.replace('Dirac rotation value:','').lstrip())
     rotation_rate = float(rotation_rate)
-    print 'Dirac rotation value: ',str(rotation_rate)
+    print('Dirac rotation value: '+str(rotation_rate))
 else:
     rotation_rate = 0.0
 angle_distrib = ClusterFile.readline().lstrip().rstrip()
 angle_distrib = angle_distrib.replace('Angle distribution:','').lstrip()
-print 'Angle distribution: ',angle_distrib
+print('Angle distribution: '+angle_distrib)
 if angle_distrib == 'Dirac':
     angle = ClusterFile.readline().lstrip().rstrip()
     angle = angle.replace('Dirac angle value:','').lstrip()
     angle = float(angle)
-    print 'Dirac angle value: ',str(angle)
+    print('Dirac angle value: '+str(angle))
 else:
     angle = 22.0
 grav_dark = ClusterFile.readline().lstrip().rstrip()
 grav_dark = grav_dark.replace('Gravity darkening:','').lstrip()
-print 'Gravity darkening: ',grav_dark
+print('Gravity darkening: '+grav_dark)
 limb_dark = ClusterFile.readline().lstrip().rstrip()
 limb_dark = limb_dark.replace('Limb darkening:','').lstrip()
-print 'Limb darkening: ',limb_dark
+print('Limb darkening: '+limb_dark)
 ClusterFile.readline()
 binary = ClusterFile.readline().lstrip().rstrip()
 binary = float(binary.replace('Binary fraction:','').lstrip())
-print 'Binary fraction: ',binary
+print('Binary fraction: '+str(binary))
 noise = ClusterFile.readline().lstrip().rstrip()
 noise = noise.replace('Noise:','').lstrip()
-print 'Noise: ',noise
+print('Noise: '+noise)
 if noise == 'True':
     nMV = ClusterFile.readline().lstrip().rstrip()
     nMV = float(nMV.replace('Noise in M_V=','').lstrip())
-    print 'Noise in M_V: ',nMV
+    print('Noise in M_V: '+str(nMV))
     nBV = ClusterFile.readline().lstrip().rstrip()
     nBV = float(nBV.replace('Noise in B-V=','').lstrip())
-    print 'Noise in B-V: ',nBV
+    print('Noise in B-V: '+str(nBV))
 else:
     nMV = 0.0
     nBV = 0.0
 colours = ClusterFile.readline().lstrip().rstrip()
 colours = colours.replace('Colours calibration:','').lstrip()
-print 'Colours calibration: ',colours
+print('Colours calibration: '+colours)
 ClusterFile.readline()
 ClusterFile.readline()
 request_date = ClusterFile.readline().lstrip().rstrip()
@@ -192,15 +193,14 @@ if not too_old and not too_young:
     ConfigFile.write('Limb Darkening:   %4s'%limb_dark+'\n')
     ConfigFile.close()
 
-    TempFile = open('TempFile.txt','w')
-    TempFile.write('n\n1\n'+str(age)+'\n')
-    if rotation_distrib == '4':
+    with open('TempFile.txt','w') as TempFile:
+      TempFile.write('n\n1\n'+str(age)+'\n')
+      if rotation_distrib == '4':
         TempFile.write(OOc_file+'\n')
-    if angle_distrib == '4':
+      if angle_distrib == '4':
         TempFile.write(angle_file+'\n')
-    TempFile.write('y\n')
-    os.system('more TempFile.txt')
-    TempFile.close()
+      TempFile.write('y\n')
+      os.system('cat TempFile.txt')
 
     ProgLaunch = Prog+' < TempFile.txt'
     SaveFile = 'Cluster_z%06.4f'%metallicity+'_t%06.3f'%age
@@ -210,17 +210,17 @@ if not too_old and not too_young:
     os.system('rm TempFile.txt')
 
 os.chdir(start_dir)
-print '***** Cluster for '+user_name+' computed *****'
-print '-----------------------------------------------------------------'
-print 'Dear SYCLIST user,\n'
+print('***** Cluster for '+user_name+' computed *****')
+print('-----------------------------------------------------------------')
+print('Dear SYCLIST user,\n')
 if not too_old and not too_young:
-    print 'Please find below the cluster you requested on ',request_date.strftime('%a %d %b %Y at %H:%M:%S'),' (CET).\n'
-    print 'The file format can be found here: http://obswww.unige.ch/Recherche/evoldb/index/Formats/#cluster'
+    print('Please find below the cluster you requested on '+request_date.strftime('%a %d %b %Y at %H:%M:%S')+' (CET).\n')
+    print('The file format can be found here: http://obswww.unige.ch/Recherche/evoldb/index/Formats/#cluster')
 else:
     if too_old:
-        print 'Sorry but the age you requested ({0:7.5f}) is beyond the lifetime of our lowest mass end in the grid for this rotation rate' \
-          '  (age max = {1:7.5f}). The cluster could not be computed.'.format(age,grid_max_age)
+        print('Sorry but the age you requested ({0:7.5f}) is beyond the lifetime of our lowest mass end in the grid for this rotation rate' \
+          '  (age max = {1:7.5f}). The cluster could not be computed.'.format(age,grid_max_age))
     elif too_young:
-        print 'Sorry but the age you requested ({0:7.5f}) is too young.' \
-          ' The cluster could not be computed.'.format(age)
-print '-----------------------------------------------------------------'
+        print('Sorry but the age you requested ({0:7.5f}) is too young.' \
+          ' The cluster could not be computed.'.format(age))
+print('-----------------------------------------------------------------')
