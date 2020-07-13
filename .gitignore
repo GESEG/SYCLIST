@@ -3,3 +3,4 @@
 *.paf
 *.pyc
 .DS_Store
+*.fpe
