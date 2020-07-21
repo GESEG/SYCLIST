@@ -3511,7 +3511,7 @@ contains
         Normalisation_Omega(1) = dist_HG(n_HG) -dist_HG(1)
 
       case(3)
-      
+
       case(4)
         do i=1,Pop_Omega_Beam_Number
           Omega_Number_interfaces(i,1) = Linear_Interp(Velocity_Interfaces(i),n_ext,omega_ext,dist_ext)
@@ -4664,7 +4664,7 @@ contains
         Comp_Mode = -1
       endif
     enddo
-    
+
     if (ivdist == 4) then
       call init_external
     endif
