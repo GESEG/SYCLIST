@@ -2054,7 +2054,7 @@ contains
                                                     - 0.281000d0*Model%Additional_Data_Line(i_VI)**2.d0 &
                                                     + 0.036550d0*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GbpV) = -0.05204d0 + 0.483000d0*Model%Additional_Data_Line(i_VI) &
-                                                    - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0
+                                                    - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0 &
                                                     + 0.02186*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GrpV) =  0.00024280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.028660d0*Model%Additional_Data_Line(i_VI)**2.d0
