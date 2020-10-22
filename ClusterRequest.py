@@ -215,7 +215,7 @@ print('-----------------------------------------------------------------')
 print('Dear SYCLIST user,\n')
 if not too_old and not too_young:
     print('Please find below the cluster you requested on '+request_date.strftime('%a %d %b %Y at %H:%M:%S')+' (CET).\n')
-    print('The file format can be found here: http://obswww.unige.ch/Recherche/evoldb/index/Formats/#cluster')
+    print('The file format can be found here: https://obswww.unige.ch/Recherche/nevoldb/index/Formats/#cluster')
 else:
     if too_old:
         print('Sorry but the age you requested ({0:7.5f}) is beyond the lifetime of our lowest mass end in the grid for this rotation rate' \
