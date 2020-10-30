@@ -208,6 +208,8 @@ if not too_old and not too_young:
     os.system(ProgLaunch)
     os.system(MoveFile)
     os.system('rm TempFile.txt')
+    if os.stat(SaveFile+'_'+date_suffix+'.dat').st_size > 20000000:
+        os.system('zip '+SaveFile+'_'+date_suffix+'.dat.zip '+SaveFile+'_'+date_suffix+'.dat')
 
 os.chdir(start_dir)
 print('***** Cluster for '+user_name+' computed *****')
