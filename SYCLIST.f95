@@ -5186,7 +5186,7 @@ contains
         Current_GridFile = trim(Std_Path)//trim(ListFileFastBe)
       case ("fromFile ")
         write(*,*) 'Enter the name of the grid file (can be a full path):'
-        read(5,*) Current_GridFile
+        read(5,'(a)') Current_GridFile
     end select
 
     open(unit=ReadUnit,file=trim(Current_GridFile),iostat=error,status='old')
