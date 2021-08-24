@@ -33,9 +33,11 @@ interp_max_age_Be = {0.002:interp1d(ooc_ini_Be,age_lowest_Be[0.002]),0.006:inter
                      0.014:interp1d(ooc_ini_Be,age_lowest_Be[0.014])}
 ooc_ini_2012 = np.array([0.,0.568])
 age_lowest_2012 = {0.0004:np.array([9.04295,9.13437]),0.002:np.array([10.16570,10.16978]), \
-                  0.006:np.array([10.32040,10.34435]),0.014:np.array([10.44482,10.46267])}
+                  0.006:np.array([10.32040,10.34435]),0.014:np.array([10.44482,10.46267]), \
+                  0.020:np.array([10.49889,10.50984])}
 interp_max_age_2012 = {0.0004:interp1d(ooc_ini_2012,age_lowest_2012[0.0004]),0.002:interp1d(ooc_ini_2012,age_lowest_2012[0.002]), \
-                        0.006:interp1d(ooc_ini_2012,age_lowest_2012[0.006]),0.014:interp1d(ooc_ini_2012,age_lowest_2012[0.014])}
+                        0.006:interp1d(ooc_ini_2012,age_lowest_2012[0.006]),0.014:interp1d(ooc_ini_2012,age_lowest_2012[0.014]), \
+                        0.020:interp1d(ooc_ini_2012,age_lowest_2012[0.020])}
 
 ClusterFile = open('ClusterRequest.txt','r')
 
