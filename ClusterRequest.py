@@ -19,6 +19,7 @@ except KeyError:
     bp.write('CLUSTER_DIR="'+working_dir+'"\nexport CLUSTER_DIR\n')
     bp.close()
 
+print('program used: {0}'.format(Prog))
 start_dir = os.getcwd()
 if start_dir != working_dir:
     os.chdir(working_dir)
