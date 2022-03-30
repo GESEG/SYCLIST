@@ -16,7 +16,7 @@ COMPILER= gfortran
 
 # Source files
 SOURCES_F90 = formats.f95 \
-paramters.f95 \
+parameters.f95 \
 SYCLIST.f95
 
 # Objects lists

@@ -9,6 +9,7 @@ module DataStructure
   integer,parameter,public::Table_Line_Number_PMS = 500
   integer,public,save::Table_Line_Number = 400
   integer,parameter,private::Data_Number_GE = 42    ! WARNING : adapt this value to the number of data hereafter:
+  integer,parameter,private::Data_Number_GECep = 50    ! WARNING : adapt this value to the number of data hereafter:
   integer,parameter,private::Data_Number_SE = 145   ! WARNING : adapt this value to the number of data hereafter:
   integer,public::Data_Number = -1
   integer,parameter,private::i_time_GE=1,i_mass_GE=2,i_logL_GE=3,i_logTeff_corr_GE=4, &
@@ -20,6 +21,16 @@ module DataStructure
     i_Al26_cen_GE=31,i_Omega_surf_GE=32,i_Omega_cen_GE=33,i_oblat_GE=34,i_Mdot_enhencement_GE=35, &
     i_v_crit1_GE=36,i_v_crit2_GE=37,i_v_equa_GE=38,i_Omega_Omcrit_GE=39,i_Gamma_Ed_GE=40, &
     i_Mdot_mec_GE=41,i_L_tot_GE=42
+  integer,parameter,private::i_time_GECep=1,i_mass_GECep=2,i_logL_GECep=3,i_logTeff_corr_GECep=4, &
+    i_H1_surf_GECep=5,i_He4_surf_GECep=6,i_C12_surf_GECep=7,i_C13_surf_GECep=8,i_N14_surf_GECep=9, &
+    i_O16_surf_GECep=10,i_O17_surf_GECep=11,i_O18_surf_GECep=12,i_Ne20_surf_GECep=13,i_Ne22_surf_GECep=14, &
+    i_Al26_surf_GECep=15,i_Mcc_GECep=16,i_logTeff_GECep=17,i_Mdot_GECep=18,i_rhoc_GECep=19,i_Tc_GECep=20, &
+    i_H1_cen_GECep=21,i_He4_cen_GECep=22,i_C12_cen_GECep=23,i_C13_cen_GECep=24,i_N14_cen_GECep=25, &
+    i_O16_cen_GECep=26,i_O17_cen_GECep=27,i_O18_cen_GECep=28,i_Ne20_cen_GECep=29,i_Ne22_cen_GECep=30, &
+    i_Al26_cen_GECep=31,i_Omega_surf_GECep=32,i_Omega_cen_GECep=33,i_oblat_GECep=34,i_Mdot_enhencement_GECep=35, &
+    i_v_crit1_GECep=36,i_v_crit2_GECep=37,i_v_equa_GECep=38,i_Omega_Omcrit_GECep=39,i_Gamma_Ed_GECep=40, &
+    i_Mdot_mec_GECep=41,i_L_tot_GECep=42,i_crossing_nb_F_GECep=43,i_crossing_nb_1O_GECep=44,i_P_F_GECep=45, &
+    i_Pdot_P_F_GECep=46,i_omi_omr_F_GECep=47,i_P_1O_GECep=48,i_Pdot_P_1O_GECep=49,i_omi_omr_1O_GECep=50
   integer,parameter,private::i_time_SE=1,i_logTeff_SE=2,i_logL_SE=3,i_logLgrav_SE=4, &
     i_mass_SE=5,i_R_SE=6,i_logg_SE=7,i_logrhophot_SE=8,i_Mdot_SE=9,i_Tc_SE=10,i_Pc_SE=11, &
     i_rhoc_SE=12,i_logTmax_SE=13,i_MTmax_SE=14,i_logrhoTmax_SE=15,i_epsnucl_SE=16,i_epsgrav_SE=17, &
@@ -71,7 +82,8 @@ module DataStructure
     i_Ne21_surf=-1,i_Na23_surf=-1,i_Mg24_surf=-1,i_Mg25_surf=-1,i_Mg26_surf=-1, &
     i_Al27_surf=-1,i_Si28_surf=-1,i_H2_cen=-1,i_He3_cen=-1,i_C14_cen=-1,i_N15_cen=-1, &
     i_F19_cen=-1,i_Ne21_cen=-1,i_Na23_cen=-1,i_Mg24_cen=-1,i_Mg25_cen=-1,i_Mg26_cen=-1, &
-    i_Al27_cen=-1,i_Si28_cen=-1
+    i_Al27_cen=-1,i_Si28_cen=-1,i_crossing_nb_F=-1,i_crossing_nb_1O=-1,i_P_F=-1, &
+    i_Pdot_P_F=-1,i_omi_omr_F=-1,i_P_1O=-1,i_Pdot_P_1O=-1,i_omi_omr_1O=-1
   integer,dimension(33),private::positive_GE=(/i_H1_surf_GE,i_He4_surf_GE,i_C12_surf_GE, &
     i_C13_surf_GE,i_N14_surf_GE,i_O16_surf_GE,i_O17_surf_GE,i_O18_surf_GE,i_Ne20_surf_GE, &
     i_Ne22_surf_GE,i_Al26_surf_GE,i_Mcc_GE,i_H1_cen_GE,i_He4_cen_GE,i_C12_cen_GE, &
@@ -84,6 +96,18 @@ module DataStructure
     i_Ne22_surf_GE,i_Al26_surf_GE,i_Mcc_GE,i_H1_cen_GE,i_He4_cen_GE,i_C12_cen_GE, &
     i_C13_cen_GE,i_N14_cen_GE,i_O16_cen_GE,i_O17_cen_GE,i_O18_cen_GE,i_Ne20_cen_GE, &
     i_Ne22_cen_GE,i_Al26_cen_GE,i_oblat_GE,i_Omega_Omcrit_GE/)
+  integer,dimension(33),private::positive_GECep=(/i_H1_surf_GECep,i_He4_surf_GECep,i_C12_surf_GECep, &
+    i_C13_surf_GECep,i_N14_surf_GECep,i_O16_surf_GECep,i_O17_surf_GECep,i_O18_surf_GECep,i_Ne20_surf_GECep, &
+    i_Ne22_surf_GECep,i_Al26_surf_GECep,i_Mcc_GECep,i_H1_cen_GECep,i_He4_cen_GECep,i_C12_cen_GECep, &
+    i_C13_cen_GECep,i_N14_cen_GECep,i_O16_cen_GECep,i_O17_cen_GECep,i_O18_cen_GECep,i_Ne20_cen_GECep, &
+    i_Ne22_cen_GECep,i_Al26_cen_GECep,i_Omega_surf_GECep,i_Omega_cen_GECep,i_oblat_GECep, &
+    i_Mdot_enhencement_GECep,i_v_crit1_GECep,i_v_crit2_GECep,i_v_equa_GECep,i_Omega_Omcrit_GECep, &
+    i_Gamma_Ed_GECep,i_L_tot_GECep/)
+  integer,dimension(25),private::less_than_one_GECep=(/i_H1_surf_GECep,i_He4_surf_GECep,i_C12_surf_GECep, &
+    i_C13_surf_GECep,i_N14_surf_GECep,i_O16_surf_GECep,i_O17_surf_GECep,i_O18_surf_GECep,i_Ne20_surf_GECep, &
+    i_Ne22_surf_GECep,i_Al26_surf_GECep,i_Mcc_GECep,i_H1_cen_GECep,i_He4_cen_GECep,i_C12_cen_GECep, &
+    i_C13_cen_GECep,i_N14_cen_GECep,i_O16_cen_GECep,i_O17_cen_GECep,i_O18_cen_GECep,i_Ne20_cen_GECep, &
+    i_Ne22_cen_GECep,i_Al26_cen_GECep,i_oblat_GECep,i_Omega_Omcrit_GECep/)
   integer,dimension(86),private::positive_SE=(/i_MrbCE_SE,i_RbCE_SE,i_MrtCC_SE,i_RtCC_SE, &
     i_Taumax_SE,i_Romax_SE,i_Taug_SE,i_Rog_SE,i_TauHp2_SE,i_RoHp2_SE,i_TauHp_SE,i_RoHp_SE, &
     i_TauR2_SE,i_RoR2_SE,i_TauM2_SE,i_RoM2_SE,i_Taumax_cc_SE,i_Romax_cc_SE,i_Taug_cc_SE, &
@@ -119,6 +143,9 @@ module DataStructure
   character(*),parameter,private::ReadFormat_GE = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
      &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),3(1x,e9.2),&
      &0p,2(1x,f9.6),1x,1pe14.7,1x,e17.10)'
+  character(*),parameter,private::ReadFormat_GECep = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
+     &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),3(1x,e9.2),&
+     &0p,2(1x,f9.6),1x,1pe14.7,1x,e17.10,1x,0pf6.2,1x,f6.2,2(4x,f11.7,1x,e14.7,1x,e14.7))'
   character(*),parameter,private::ReadFormat_SE = '(1x,i3,1x,e17.10,3(1x,f9.6),1x,f13.8,1x,f11.5,1x,f5.2,1x,e10.3,&
       &1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),28(1x,e11.4),1x,&
       &e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),52(1x,e11.4))'
@@ -406,6 +433,64 @@ contains
       i_Si28_cen = i_Si28_cen_SE
       ! For starevol format, we set i_logTeff_corr to i_logTeff, since they are not distinguished.
       i_logTeff_corr = i_logTeff
+    else if (MyFormat == 3) then
+    ! GENEC format with Cepheids data
+      allocate(positive(size(positive_GECep)))
+      allocate(less_than_one(size(less_than_one_GECep)))
+      positive(:) = positive_GECep(:)
+      less_than_one(:) = less_than_one_GECep(:)
+      ReadFormat = ReadFormat_GECep
+      Data_Number = Data_Number_GECep
+      i_time = i_time_GECep
+      i_mass = i_mass_GECep
+      i_logL = i_logL_GECep
+      i_logTeff_corr = i_logTeff_corr_GECep
+      i_H1_Surf = i_H1_Surf_GECep
+      i_He4_surf = i_He4_surf_GECep
+      i_C12_surf = i_C12_surf_GECep
+      i_C13_surf = i_C13_surf_GECep
+      i_N14_surf = i_N14_surf_GECep
+      i_O16_surf = i_O16_surf_GECep
+      i_O17_surf = i_O17_surf_GECep
+      i_O18_surf = i_O18_surf_GECep
+      i_Ne20_surf = i_Ne20_surf_GECep
+      i_Ne22_surf = i_Ne22_surf_GECep
+      i_Al26_surf = i_Al26_surf_GECep
+      i_Mcc = i_Mcc_GECep
+      i_logTeff = i_logTeff_GECep
+      i_Mdot = i_Mdot_GECep
+      i_rhoc = i_rhoc_GECep
+      i_Tc = i_Tc_GECep
+      i_H1_cen = i_H1_cen_GECep
+      i_He4_cen = i_He4_cen_GECep
+      i_C12_cen = i_C12_cen_GECep
+      i_C13_cen = i_C13_cen_GECep
+      i_N14_cen = i_N14_cen_GECep
+      i_O16_cen = i_O16_cen_GECep
+      i_O17_cen = i_O17_cen_GECep
+      i_O18_cen = i_O18_cen_GECep
+      i_Ne20_cen = i_Ne20_cen_GECep
+      i_Ne22_cen = i_Ne22_cen_GECep
+      i_Al26_cen = i_Al26_cen_GECep
+      i_Omega_surf = i_Omega_surf_GECep
+      i_Omega_cen = i_Omega_cen_GECep
+      i_oblat = i_oblat_GECep
+      i_Mdot_enhencement = i_Mdot_enhencement_GECep
+      i_v_crit1 = i_v_crit1_GECep
+      i_v_crit2 = i_v_crit2_GECep
+      i_v_equa = i_v_equa_GECep
+      i_Omega_Omcrit = i_Omega_Omcrit_GECep
+      i_Gamma_Ed = i_Gamma_Ed_GECep
+      i_Mdot_mec = i_Mdot_mec_GECep
+      i_L_tot = i_L_tot_GECep
+      i_crossing_nb_F = i_crossing_nb_F_GECep
+      i_crossing_nb_1O = i_crossing_nb_1O_GECep
+      i_P_F = i_P_F_GECep
+      i_Pdot_P_F = i_Pdot_P_F_GECep
+      i_omi_omr_F = i_omi_omr_F_GECep
+      i_P_1O = i_P_1O_GECep
+      i_Pdot_P_1O = i_Pdot_P_1O_GECep
+      i_omi_omr_1O = i_omi_omr_1O_GECep
     else
       write(*,*) 'Problems with the requested format, aborting...'
       stop

@@ -665,7 +665,7 @@ contains
     if (CurrentTime_Line%Data_Line(i_Mdot) < -25.d0) then
       CurrentTime_Line%Data_Line(i_Mdot) = 0.d0
     endif
-    if (table_format == 1) then
+    if (table_format == 1 .or. table_format == 3) then
       if (CurrentTime_Line%Data_Line(i_Mdot_mec) < -25.d0) then
         CurrentTime_Line%Data_Line(i_Mdot_mec) = 0.d0
       endif
@@ -3822,8 +3822,10 @@ contains
        write(*,*) 'Tables are in GENEC format.'
     else if (table_format == 2) then
        write(*,*) 'Tables are in Starevol format.'
+    else if (table_format == 3) then
+       write(*,*) 'Tables are in GENEC format with Cepheids data.'
     else
-       write(*,*) 'Problems with the table format, should be 1 or 2.'
+       write(*,*) 'Problems with the table format, should be 1, 2 or 3.'
     endif
     select case (IMF_type)
       case (1)
@@ -4066,13 +4068,14 @@ contains
           endif
         case(2)
           Temp_Var_Int=10
-          do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
+          do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. Temp_Var_Int /= 3)
             write(*,*) 'What is the wanted format for the tables?'
             write(*,*) '1. GENEC format'
             write(*,*) '2. Starevol format'
+            write(*,*) '3. GENEC format with Cepheids'
             read(5,*) Temp_Var_Int
-            if (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2) then
-              write(*,*) 'Please enter 1 or 2.'
+            if (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. Temp_Var_Int /= 3) then
+              write(*,*) 'Please enter 1, 2 or 3.'
             endif
           enddo
           table_format=Temp_Var_Int
@@ -4706,7 +4709,8 @@ contains
       i_Omega_surf,i_oblat,i_v_crit1,i_v_crit2,i_v_equa,i_Omega_Omcrit,i_Gamma_Ed,i_Mdot_mec, &
       i_PolarRadius,i_polar_gravity,Table_Line_Number,Data_Number,i_MV_noisy,i_BV_noisy,&
       i_MBol,i_MV,i_UB,i_BV,i_B2V1,i_VK,i_VR,i_VI,i_JK,i_HK,i_BC,i_logL_gd,i_logTeff_gd,i_logL_lgd, &
-      i_logTeff_lgd,i_mean_gravity,i_GV,i_GbpV,i_GrpV,i_Gflag
+      i_logTeff_lgd,i_mean_gravity,i_GV,i_GbpV,i_GrpV,i_Gflag,i_crossing_nb_F,i_crossing_nb_1O,i_P_F, &
+      i_Pdot_P_F,i_omi_omr_F,i_P_1O,i_Pdot_P_1O,i_omi_omr_1O
     use VariousParameters, only: Current_Number,age_log,Comp_Mode,iangle,limb_dark
     use LoopVariables, only: CurrentTime_Model
     use Population_mode, only: N_Time_step,Evolution_Data,time_step_array,Evolutionary_Values
@@ -4721,12 +4725,18 @@ contains
     character(*),parameter:: Output_Format_GE= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,17(2x,f8.4),2x,1pe9.3,&
                                          &2x,0pf6.4,2x,f6.3,2x,e9.3,3(2x,f8.2),2x,f6.4,1x,f7.3,1x,f7.3,&
                                          &2x,f6.4,11(2x,e9.3))', &
+      Output_Format_GECep= '(f7.3,2x,f8.6,2x,f5.3,2x,f7.3,17(2x,f8.4),2x,1pe9.3,&
+                                         &2x,0pf6.4,2x,f6.3,2x,e9.3,3(2x,f8.2),2x,f6.4,1x,f7.3,1x,f7.3,&
+                                         &2x,f6.4,11(2x,e9.3),1x,f6.2,1x,f6.2,2(4x,f11.7,1x,es14.7,1x,es14.7))', &
       Output_Format_SE= '(f10.6,2x,f8.6,2x,f5.3,2x,3(1x,f9.6),1x,f13.8,1x,f11.5,1x,f5.2,1x,e10.3,&
       &1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),28(1x,e11.4),1x,&
       &e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),52(1x,e11.4))', &
       Output_Format_Cluster_GE= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
                                          &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
                                          &f7.3,2x,f6.4,11(2x,e9.3))', &
+      Output_Format_Cluster_GECep= '(f6.2,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,f6.2,22(2x,f8.4),2x,&
+                                         &1pe9.3,2x,0pf6.4,2x,f6.3,2x,f6.3,2x,e9.3,3(2x,es8.2),2x,f6.4,1x,f7.3,1x,&
+                                         &f7.3,2x,f6.4,11(2x,e9.3),1x,f6.2,1x,f6.2,2(4x,f11.7,1x,es14.7,1x,es14.7))', &
       Output_Format_Cluster_SE= '(f7.3,2x,f8.6,4x,f5.3,2x,f5.2,4x,i1,1x,f7.3,1x,3(1x,f9.6),1x,f13.8,1x,f11.5,&
       &1x,f5.2,1x,e10.3,1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),&
       &28(1x,e11.4),1x,e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),&
@@ -4734,6 +4744,10 @@ contains
       Output_Format_Single_GE = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
                                   &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),&
                                   &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,16(2x,f7.3))', &
+      Output_Format_Single_GECep = '(i3,1x,e22.15,1x,f11.6,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),1x,e10.3,&
+                                  &1x,0pf7.4,1x,f9.6,1x,f8.3,2(1x,f9.6),2(1x,e14.7),1p,8(1x,e14.7),5(1x,e10.3),&
+                                  &3(1x,e9.2),0p,2(1x,f9.6),1x,1es14.7,1x,es17.10,1x,f6.2,1x,f6.2,&
+                                  &2(4x,f11.7,1x,es14.7,1x,es14.7),16(2x,f7.3))', &
       Output_Format_Single_SE = '(1x,i3,1x,e17.10,3(1x,f9.6),1x,f13.8,1x,f11.5,1x,f5.2,1x,e10.3,&
       &1x,f10.6,6(1x,f9.6),3(1x,e11.4),1x,f10.7,1x,e10.3,2(1x,f8.5),1x,f10.7,1x,e10.3,2(1x,f8.5),28(1x,e11.4),1x,&
       &e9.2,1x,e11.4,2(1x,e9.2),1x,e11.4,1x,e9.2,1x,e11.4,1x,e9.2,8(1x,e11.4),23(1x,f8.4),52(1x,e11.4))', &
@@ -4743,6 +4757,14 @@ contains
                          &        BC      r_pol   oblat   g_pol    Omega_S      v_eq   v_crit1&
                          &   v_crit2  Om/Om_cr lg(Md)  lg(Md_M) Ga_Ed H1         He4        C12        C13&
                          &        N14        O16        O17        O18        Ne20       Ne22       Al26', &
+      Header_GECep = ' M_ini      Z_ini  OmOc_ini  M       logL     logTe_c  logTe_nc      MBol        &
+                         &MV       U-B       B-V       V-K       V-R       V-I       J-K&
+                         &       H-K       G-V     Gbp-V     Grp-V    G_flag&
+                         &        BC      r_pol   oblat   g_pol    Omega_S      v_eq   v_crit1&
+                         &   v_crit2  Om/Om_cr lg(Md)  lg(Md_M) Ga_Ed H1         He4        C12        C13&
+                         &        N14        O16        O17        O18        Ne20       Ne22       Al26&
+                         &  crossing_nb_F crossing_nb_1O  P_F  Pdot_P_F      -omi_omr_F          P_1O&
+                         &	     Pdot_P_1O	  -omi_omr_1O', &
       Header_SE = ' M_ini    Z_ini  OmOc_ini  logTeff      logL  logLgrav             M           R  &
                   &logg   rho_phot    logMdot     logTc     logPc   logrhoc   logTmax   Mr_Tmax  logrhomax   &
                   &eps_nucl    eps_grav      eps_nu   Mr_b_CE  normR_b_CE   logT_b logrho_b   Mr_t_CC  normR_t_CC   &
@@ -4778,6 +4800,15 @@ contains
                            &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
                            &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
                            &        O17        O18       Ne20       Ne22       Al26', &
+      Header_Cluster_GECep = ' M_ini     Z_ini  OmOc_ini Angle  Bin  M1/M2    M       logL     logTe_c&
+                           &  logTe_nc   logL_gd  logTe_gd  logL_lgd logTe_lgd      MBol&
+                           &        MV       U-B       B-V       V-R       V-I&
+                           &       J-K       H-K       V-K     MV_n     B-V_n&
+                           &       G-V     Gbp-V     Grp-V     G_flag&
+                           &      r_pol   oblat   g_pol  g_mean    Omega_S      v_eq   v_crit1   v_crit2 Om/Om_cr lg(Md)&
+                           &  lg(Md_M) Ga_Ed         H1        He4        C12        C13        N14        O16&
+                           &        O17        O18       Ne20       Ne22       Al26  crossing_nb_F crossing_nb_1O  P_F&
+                           &  Pdot_P_F      -omi_omr_F          P_1O	     Pdot_P_1O	  -omi_omr_1O', &
       Header_Cluster_SE = '  M_ini     Z_ini  OmOc_ini Angle  Bin   M1/M2   lg(Teff)     lg(L) lg(Lgrav)&
                    &             M           R lg(g)&
                    &   rho_phot   lg(Mdot)    lg(Tc)    lg(Pc)  lg(rhoc)  lg(Tmax)  Mr(Tmax)lg(rhomax)&
@@ -4808,6 +4839,7 @@ contains
     integer:: DataToPrint_Single = -1, DataToPrint_Iso = -1, DataToPrint_Cluster = -1, bigswitch = -1
     integer,parameter:: DataToPrint_Single_GE = 58,DataToPrint_Iso_GE = 43,DataToPrint_Cluster_GE = 51
     integer,parameter:: DataToPrint_Single_SE = 145,DataToPrint_Iso_SE = 147,DataToPrint_Cluster_SE = 149
+    integer,parameter:: DataToPrint_Single_GeCep = 66,DataToPrint_Iso_GECep = 51,DataToPrint_Cluster_GECep = 59
     real(kind=8),dimension(:,:),allocatable::TableToPrint
 
     ! Perform some stuff related to the writing mode:
@@ -4833,6 +4865,17 @@ contains
         DataToPrint_Cluster = DataToPrint_Cluster_SE
         Header = Header_SE
         Header_Cluster = Header_Cluster_SE
+      case (3)
+      ! GENEC with Cepheids data output
+        Output_Format = Output_Format_GECep
+        Output_Format_Single = Output_Format_Single_GECep
+        Output_Format_Cluster = Output_Format_Cluster_GECep
+        DataToPrint_Single = DataToPrint_Single_GECep
+        DataToPrint_Iso = DataToPrint_Iso_GECep
+        DataToPrint_Cluster = DataToPrint_Cluster_GECep
+        Header = Header_GECep
+        Header_Cluster = Header_Cluster_GECep
+        write(formatPop,'(a,i2,a)') '(es10.4,',Evolutionary_Values,'(3x,es10.4))'
       case default
         write(*,*) 'Unexpected problem in writing format. Check.'
         stop
@@ -4840,7 +4883,7 @@ contains
 
     ! Allocate the memory for the data to be printed.
     ! Here, we set a new integer for switching mode to cover the whole possible options:
-    ! so far, 4 computing modes and 2 formats. 1-4 are GENEC, and 5-8 are starevol
+    ! so far, 4 computing modes and 2 formats. 1-4 are GENEC, 5-8 are starevol, 9-12 for GENEC with Cepheids
     bigswitch = 4*(write_mode-1)+Comp_Mode
     select case (bigswitch)
       case (1) ! GENEC cluster
@@ -4947,6 +4990,97 @@ contains
         allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
         do i=1,Table_Line_Number
           TableToPrint(i,:) = CurrentTime_Model(i)%Data_Line(:)
+        enddo
+      case (9) ! GENEC with Cepheids cluster
+        allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,90.d0-CurrentTime_Model(i)%Angle_of_View*180.d0/pi, &
+            CurrentTime_Model(i)%mass_ratio, &
+            CurrentTime_Model(i)%Data_Line(i_mass),CurrentTime_Model(i)%Data_Line(i_logL), &
+            CurrentTime_Model(i)%Data_Line(i_logTeff_corr),CurrentTime_Model(i)%Data_Line(i_logTeff), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd),CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VK),CurrentTime_Model(i)%Additional_Data_Line(i_MV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_BV_noisy), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius),CurrentTime_Model(i)%Data_Line(i_oblat), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_mean_gravity)), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
+            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
+            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
+            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
+            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Al26_Surf),CurrentTime_Model(i)%Data_Line(i_crossing_nb_F), &
+            CurrentTime_Model(i)%Data_Line(i_crossing_nb_1O),CurrentTime_Model(i)%Data_Line(i_P_F), &
+            CurrentTime_Model(i)%Data_Line(i_Pdot_P_F),CurrentTime_Model(i)%Data_Line(i_omi_omr_F), &
+            CurrentTime_Model(i)%Data_Line(i_P_1O),CurrentTime_Model(i)%Data_Line(i_Pdot_P_1O), &
+            CurrentTime_Model(i)%Data_Line(i_omi_omr_1O)/)
+        enddo
+      case (10) ! GENEC with Cepheids isochrone
+        allocate(TableToPrint(Current_Number,DataToPrint_Iso))
+        do i=1,Current_Number
+          TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
+            CurrentTime_Model(i)%Omega_Omcrit_ini,CurrentTime_Model(i)%Data_Line(i_mass), &
+            CurrentTime_Model(i)%Data_Line(i_logL),CurrentTime_Model(i)%Data_Line(i_logTeff_corr), &
+            CurrentTime_Model(i)%Data_Line(i_logTeff), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_MBol),CurrentTime_Model(i)%Additional_Data_Line(i_MV), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_UB),CurrentTime_Model(i)%Additional_Data_Line(i_BV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_VR),CurrentTime_Model(i)%Additional_Data_Line(i_VI),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_JK),CurrentTime_Model(i)%Additional_Data_Line(i_HK),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GV),CurrentTime_Model(i)%Additional_Data_Line(i_GbpV),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_GrpV),CurrentTime_Model(i)%Additional_Data_Line(i_Gflag),&
+            CurrentTime_Model(i)%Additional_Data_Line(i_BC),CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius), &
+            CurrentTime_Model(i)%Data_Line(i_oblat),log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_surf),CurrentTime_Model(i)%Data_Line(i_v_equa), &
+            CurrentTime_Model(i)%Data_Line(i_v_crit1),CurrentTime_Model(i)%Data_Line(i_v_crit2), &
+            CurrentTime_Model(i)%Data_Line(i_Omega_Omcrit),CurrentTime_Model(i)%Data_Line(i_Mdot), &
+            CurrentTime_Model(i)%Data_Line(i_Mdot_mec),CurrentTime_Model(i)%Data_Line(i_Gamma_Ed), &
+            CurrentTime_Model(i)%Data_Line(i_H1_surf),CurrentTime_Model(i)%Data_Line(i_He4_surf), &
+            CurrentTime_Model(i)%Data_Line(i_C12_Surf),CurrentTime_Model(i)%Data_Line(i_C13_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_N14_Surf),CurrentTime_Model(i)%Data_Line(i_O16_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_O17_Surf),CurrentTime_Model(i)%Data_Line(i_O18_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Ne20_Surf),CurrentTime_Model(i)%Data_Line(i_Ne22_Surf), &
+            CurrentTime_Model(i)%Data_Line(i_Al26_Surf),CurrentTime_Model(i)%Data_Line(i_crossing_nb_F), &
+            CurrentTime_Model(i)%Data_Line(i_crossing_nb_1O),CurrentTime_Model(i)%Data_Line(i_P_F), &
+            CurrentTime_Model(i)%Data_Line(i_Pdot_P_F),CurrentTime_Model(i)%Data_Line(i_omi_omr_F), &
+            CurrentTime_Model(i)%Data_Line(i_P_1O),CurrentTime_Model(i)%Data_Line(i_Pdot_P_1O), &
+            CurrentTime_Model(i)%Data_Line(i_omi_omr_1O)/)
+        enddo
+      case (11) ! GENEC with Cepheids population
+        allocate(TableToPrint(N_Time_step,size(Evolution_Data,2)+1))
+        do i=1,N_Time_step
+          TableToPrint(i,:) = (/time_step_array(i),Evolution_Data(i,:)/)
+        enddo
+      case (12) ! GENEC with Cepheids single model
+        allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
+        do i=1,Table_Line_Number
+          if (iangle > 0) then
+            if (limb_dark > 0) then
+              CurrentTime_Model(i)%Data_Line(i_logL) = CurrentTime_Model(i)%Additional_Data_Line(i_logL_lgd)
+              CurrentTime_Model(i)%Data_Line(i_logTeff_corr) = CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_lgd)
+            else
+              CurrentTime_Model(i)%Data_Line(i_logL) = CurrentTime_Model(i)%Additional_Data_Line(i_logL_gd)
+              CurrentTime_Model(i)%Data_Line(i_logTeff_corr) = CurrentTime_Model(i)%Additional_Data_Line(i_logTeff_gd)
+            endif
+          endif
+          TableToPrint(i,:) = (/(CurrentTime_Model(i)%Data_Line(j),j=1,Data_Number), &
+            log10(CurrentTime_Model(i)%Additional_Data_Line(i_polar_gravity)), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_PolarRadius)/R_sun, &
+            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_MBol,i_BV), &
+            (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_VR,i_Gflag), &
+            CurrentTime_Model(i)%Additional_Data_Line(i_BC)/)
         enddo
       case default
         write(*,*) 'Unexpected mode...'
