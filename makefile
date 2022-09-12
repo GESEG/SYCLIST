@@ -18,7 +18,7 @@ SYCLIST.f95
 SOURCES=$(SOURCES_F95:%.f95=%.o)
 
 OBJECTS=$(SOURCES) main.o
-LIBOBJECTS=$(SOURCES) amuse_helpers.o
+LIBOBJECTS=$(SOURCES)
 
 # Compilation rules
 %.o: $(SRCDIR)/%.f95
@@ -27,18 +27,13 @@ LIBOBJECTS=$(SOURCES) amuse_helpers.o
 
 
 # Compile and link the code
-evolData_new: $(OBJECTS)
+syclist: $(OBJECTS)
 	@echo "==========LINKING========="
 	@echo "Fortran options: $(FFLAGS) --> $(EXEC)"
 	@$(COMPILER) $(FFLAGS) $(OBJECTS) $(LIBS) -o $(EXEC)
 
 libsyclist.a: $(LIBOBJECTS)
 	ar crs $@ $^
-	#@echo "==========LINKING========="
-	#@echo "=========INTERFACE========"
-	#@echo "Fortran options: $(FFLAGS) --> $(EXEC)"
-	#@$(COMPILER) $(FFLAGS) -c $(OBJECTS) SYCLIST.f95 amuse_helpers.f95 $(LIBS) # -o $(EXEC)
-
 
 clean:
 	rm -f *.o *.mod
