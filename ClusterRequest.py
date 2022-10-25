@@ -4,6 +4,11 @@ import datetime
 import numpy as np
 from scipy.interpolate import interp1d
 from six.moves import input
+try:
+    import pync
+    notif=True
+except:
+    notif=False
 
 try:
     Prog = os.environ['SYCLIST_PROG']
@@ -229,3 +234,5 @@ else:
         print('Sorry but the age you requested ({0:7.5f}) is too young.' \
           ' The cluster could not be computed.'.format(age))
 print('-----------------------------------------------------------------')
+if notif:
+    pync.notify("Cluster computed",title="SYCLIST",sound='default')
