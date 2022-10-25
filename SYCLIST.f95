@@ -4646,9 +4646,11 @@ contains
           Begin_in_String = index(FullPath,Z_Pos,.true.)
           Z_String = FullPath(Begin_in_String+1:Begin_in_String+Z_Length)
           if (Z_String == "m4") then
-             Z_initial = 4.d-4
+            Z_initial = 4.d-4
+          else if (Z_String == "m5") then
+            Z_initial = 1.d-5
           else if (Z_String == "m9") then
-             Z_initial = 9.d-4                
+            Z_initial = 9.d-4
           else
             read(Z_String,'(i2)') Z_ini_int
             Z_initial = dble(Z_ini_int)/1000.d0
