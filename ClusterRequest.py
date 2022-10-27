@@ -45,80 +45,77 @@ interp_max_age_2012 = {0.0004:interp1d(ooc_ini_2012,age_lowest_2012[0.0004]),0.0
                         0.006:interp1d(ooc_ini_2012,age_lowest_2012[0.006]),0.014:interp1d(ooc_ini_2012,age_lowest_2012[0.014]), \
                         0.020:interp1d(ooc_ini_2012,age_lowest_2012[0.020])}
 
-ClusterFile = open('ClusterRequest.txt','r')
-
-first = ClusterFile.readline()
-if first[0] != '-':
-  ClusterFile.readline()
-user_name = ClusterFile.readline().lstrip().rstrip()
-user_name = user_name[0:user_name.rfind('@')].replace('Cluster request from ','').lstrip()
-print('Cluster request from '+user_name)
-ClusterFile.readline()
-grids = ClusterFile.readline().lstrip().rstrip()
-grids = grids.replace('Grids:','').lstrip()
-print('Grids: '+grids)
-metallicity = ClusterFile.readline().lstrip().rstrip()
-metallicity = float(metallicity.replace('Metallicity:','').lstrip())
-print('Metallicity: '+str(metallicity))
-age = ClusterFile.readline().lstrip().rstrip()
-age = float(age.replace('Cluster age:','').lstrip())
-print('Age: '+str(age))
-star_number = ClusterFile.readline().lstrip().rstrip()
-star_number = int(star_number.replace('Star number:','').lstrip())
-print('Star number: '+str(star_number))
-ClusterFile.readline()
-rotation_distrib = ClusterFile.readline().lstrip().rstrip()
-rotation_distrib = rotation_distrib.replace('Rotation distribution:','').lstrip()
-print('Rotation distribution: '+rotation_distrib)
-if rotation_distrib == 'Dirac':
-    rotation_rate = ClusterFile.readline().lstrip().rstrip()
-    rotation_rate = float(rotation_rate.replace('Dirac rotation value:','').lstrip())
-    rotation_rate = float(rotation_rate)
-    print('Dirac rotation value: '+str(rotation_rate))
-else:
-    rotation_rate = 0.0
-angle_distrib = ClusterFile.readline().lstrip().rstrip()
-angle_distrib = angle_distrib.replace('Angle distribution:','').lstrip()
-print('Angle distribution: '+angle_distrib)
-if angle_distrib == 'Dirac':
-    angle = ClusterFile.readline().lstrip().rstrip()
-    angle = angle.replace('Dirac angle value:','').lstrip()
-    angle = float(angle)
-    print('Dirac angle value: '+str(angle))
-else:
-    angle = 22.0
-grav_dark = ClusterFile.readline().lstrip().rstrip()
-grav_dark = grav_dark.replace('Gravity darkening:','').lstrip()
-print('Gravity darkening: '+grav_dark)
-limb_dark = ClusterFile.readline().lstrip().rstrip()
-limb_dark = limb_dark.replace('Limb darkening:','').lstrip()
-print('Limb darkening: '+limb_dark)
-ClusterFile.readline()
-binary = ClusterFile.readline().lstrip().rstrip()
-binary = float(binary.replace('Binary fraction:','').lstrip())
-print('Binary fraction: '+str(binary))
-noise = ClusterFile.readline().lstrip().rstrip()
-noise = noise.replace('Noise:','').lstrip()
-print('Noise: '+noise)
-if noise == 'True':
-    nMV = ClusterFile.readline().lstrip().rstrip()
-    nMV = float(nMV.replace('Noise in M_V=','').lstrip())
-    print('Noise in M_V: '+str(nMV))
-    nBV = ClusterFile.readline().lstrip().rstrip()
-    nBV = float(nBV.replace('Noise in B-V=','').lstrip())
-    print('Noise in B-V: '+str(nBV))
-else:
-    nMV = 0.0
-    nBV = 0.0
-colours = ClusterFile.readline().lstrip().rstrip()
-colours = colours.replace('Colours calibration:','').lstrip()
-print('Colours calibration: '+colours)
-ClusterFile.readline()
-ClusterFile.readline()
-request_date = ClusterFile.readline().lstrip().rstrip()
-request_date = datetime.datetime.strptime(request_date[0:19], "%Y-%m-%d %H:%M:%S")
-
-ClusterFile.close()
+with open('ClusterRequest.txt','r') as ClusterFile:
+	first = ClusterFile.readline()
+	if first[0] != '-':
+	  ClusterFile.readline()
+	user_name = ClusterFile.readline().lstrip().rstrip()
+	user_name = user_name[0:user_name.rfind('@')].replace('Cluster request from ','').lstrip()
+	print('Cluster request from '+user_name)
+	ClusterFile.readline()
+	grids = ClusterFile.readline().lstrip().rstrip()
+	grids = grids.replace('Grids:','').lstrip()
+	print('Grids: '+grids)
+	metallicity = ClusterFile.readline().lstrip().rstrip()
+	metallicity = float(metallicity.replace('Metallicity:','').lstrip())
+	print('Metallicity: '+str(metallicity))
+	age = ClusterFile.readline().lstrip().rstrip()
+	age = float(age.replace('Cluster age:','').lstrip())
+	print('Age: '+str(age))
+	star_number = ClusterFile.readline().lstrip().rstrip()
+	star_number = int(star_number.replace('Star number:','').lstrip())
+	print('Star number: '+str(star_number))
+	ClusterFile.readline()
+	rotation_distrib = ClusterFile.readline().lstrip().rstrip()
+	rotation_distrib = rotation_distrib.replace('Rotation distribution:','').lstrip()
+	print('Rotation distribution: '+rotation_distrib)
+	if rotation_distrib == 'Dirac':
+		rotation_rate = ClusterFile.readline().lstrip().rstrip()
+		rotation_rate = float(rotation_rate.replace('Dirac rotation value:','').lstrip())
+		rotation_rate = float(rotation_rate)
+		print('Dirac rotation value: '+str(rotation_rate))
+	else:
+		rotation_rate = 0.0
+	angle_distrib = ClusterFile.readline().lstrip().rstrip()
+	angle_distrib = angle_distrib.replace('Angle distribution:','').lstrip()
+	print('Angle distribution: '+angle_distrib)
+	if angle_distrib == 'Dirac':
+		angle = ClusterFile.readline().lstrip().rstrip()
+		angle = angle.replace('Dirac angle value:','').lstrip()
+		angle = float(angle)
+		print('Dirac angle value: '+str(angle))
+	else:
+		angle = 22.0
+	grav_dark = ClusterFile.readline().lstrip().rstrip()
+	grav_dark = grav_dark.replace('Gravity darkening:','').lstrip()
+	print('Gravity darkening: '+grav_dark)
+	limb_dark = ClusterFile.readline().lstrip().rstrip()
+	limb_dark = limb_dark.replace('Limb darkening:','').lstrip()
+	print('Limb darkening: '+limb_dark)
+	ClusterFile.readline()
+	binary = ClusterFile.readline().lstrip().rstrip()
+	binary = float(binary.replace('Binary fraction:','').lstrip())
+	print('Binary fraction: '+str(binary))
+	noise = ClusterFile.readline().lstrip().rstrip()
+	noise = noise.replace('Noise:','').lstrip()
+	print('Noise: '+noise)
+	if noise == 'True':
+		nMV = ClusterFile.readline().lstrip().rstrip()
+		nMV = float(nMV.replace('Noise in M_V=','').lstrip())
+		print('Noise in M_V: '+str(nMV))
+		nBV = ClusterFile.readline().lstrip().rstrip()
+		nBV = float(nBV.replace('Noise in B-V=','').lstrip())
+		print('Noise in B-V: '+str(nBV))
+	else:
+		nMV = 0.0
+		nBV = 0.0
+	colours = ClusterFile.readline().lstrip().rstrip()
+	colours = colours.replace('Colours calibration:','').lstrip()
+	print('Colours calibration: '+colours)
+	ClusterFile.readline()
+	ClusterFile.readline()
+	request_date = ClusterFile.readline().lstrip().rstrip()
+	request_date = datetime.datetime.strptime(request_date[0:19], "%Y-%m-%d %H:%M:%S")
 
 if rotation_distrib == 'ext' or angle_distrib == 4:
     with open('ClusterRequest.txt','a') as ClusterFile:
