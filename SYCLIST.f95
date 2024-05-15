@@ -3808,7 +3808,7 @@ contains
     write(*,*) ''
     write(*,*) 'Cyril Georgy, Aurelien Wyttenbach,'
     write(*,*) 'Anahi Granada & Sylvia Ekstrom'
-    write(*,*) 'Last Version : March 25 2019'
+    write(*,*) 'Last Version : May 15 2024'
     write(*,*) '**********************************************'
     write(*,*)
     write(*,*) '**********************************************'
@@ -3999,7 +3999,7 @@ contains
     use VariousParameters, only:grid,star_number,m_IMF_inf,m_IMF_sup,m_IMF_inf_Grids2012, &
       m_IMF_sup_Grids2012,m_IMF_inf_BeGrids,m_IMF_sup_BeGrids,ivdist,om_ivdist,iangle, &
       Fixed_AoV_latitude,binary_prob,inoise,IMF_type,sigma_mv,sigma_bv,fixed_metallicity, &
-      Colour_Calibration_mode,grav_dark,limb_dark,PMS,table_format
+      Colour_Calibration_mode,grav_dark,limb_dark,PMS,table_format,Target_cluster_mass
 
     implicit none
 
@@ -4019,21 +4019,22 @@ contains
       write(*,'(a,i1)') '2. Format of the tables                          ',table_format
       write(*,'(a,l)') '3. Tables with PMS                               ',PMS
       write(*,'(a,i8)') '4. maximum number of star in the cluster  ',star_number
-      write(*,'(a,i5)') '5. IMF type                                  ',IMF_type
-      write(*,'(a,f6.2)') '6. minimum mass for IMF                     ',m_IMF_inf
-      write(*,'(a,f6.2)') '7. maximum mass for IMF                     ',m_IMF_sup
-      write(*,'(a,f6.4)') '8. metallicity                              ',fixed_metallicity
-      write(*,'(a,i5)') '9. angular velocity distribution             ',ivdist
-      write(*,'(a,f5.2)') '10. special angular velocity (ivdist=3)      ',om_ivdist
-      write(*,'(a,i5)') '11. angle of view distribution               ',iangle
-      write(*,'(a,f5.2)') '12. special angle of view (iangle=3)         ',Fixed_AoV_latitude
-      write(*,'(a,f5.2)') '13. probability of binarity                  ',binary_prob
-      write(*,'(a,i5)') '14. Colour - Teff calibration                ',Colour_Calibration_mode
-      write(*,'(a,i5)') '15. noise                                    ',inoise
-      write(*,'(a,f5.3)') '16. sigma in M_V                             ',sigma_mv
-      write(*,'(a,f5.3)') '17. sigma in B-V                             ',sigma_bv
-      write(*,'(a,i5)') '18. Gravity Darkening                        ',grav_dark
-      write(*,'(a,i5)') '19. Limb Darkening                           ',limb_dark
+      write(*,'(a,d9.3)') '5. Targeted cluster mass:                ',Target_cluster_mass
+      write(*,'(a,i5)') '6. IMF type                                  ',IMF_type
+      write(*,'(a,f6.2)') '7. minimum mass for IMF                     ',m_IMF_inf
+      write(*,'(a,f6.2)') '8. maximum mass for IMF                     ',m_IMF_sup
+      write(*,'(a,f6.4)') '9. metallicity                              ',fixed_metallicity
+      write(*,'(a,i5)') '10. angular velocity distribution            ',ivdist
+      write(*,'(a,f5.2)') '11. special angular velocity (ivdist=3)      ',om_ivdist
+      write(*,'(a,i5)') '12. angle of view distribution               ',iangle
+      write(*,'(a,f5.2)') '13. special angle of view (iangle=3)         ',Fixed_AoV_latitude
+      write(*,'(a,f5.2)') '14. probability of binarity                  ',binary_prob
+      write(*,'(a,i5)') '15. Colour - Teff calibration                ',Colour_Calibration_mode
+      write(*,'(a,i5)') '16. noise                                    ',inoise
+      write(*,'(a,f5.3)') '17. sigma in M_V                             ',sigma_mv
+      write(*,'(a,f5.3)') '18. sigma in B-V                             ',sigma_bv
+      write(*,'(a,i5)') '19. Gravity Darkening                        ',grav_dark
+      write(*,'(a,i5)') '20. Limb Darkening                           ',limb_dark
       read(*,*) Change_Param
       select case(Change_Param)
         case(0)
@@ -4094,9 +4095,15 @@ contains
             PMS = .false.
           endif
         case(4)
-          write(*,*) 'Number of stars in the synthetic cluster:'
+          write(*,*) 'Number of stars in the synthetic cluster'
+          write(*,*) '(accounted for only if the initial mass of the cluster is set to 0.):'
           read(*,*) star_number
         case(5)
+          write(*,*) 'Wanted initial mass of the cluster (in solar masses) :'
+          write(*,*) "The number of star will be adapted, don't change it anymore."
+          read(*,*) Target_cluster_mass
+          star_number = int(Target_cluster_mass)
+        case(6)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'What do you want for the IMF?'
@@ -4108,7 +4115,7 @@ contains
             endif
           enddo
           IMF_type=Temp_Var_Int
-        case(6)
+        case(7)
           write(*,*) 'What do you want for minimal IMF mass ?'
           read(*,*) m_IMF_inf
           if (grid == "Grids2012" .and. m_IMF_inf < m_IMF_inf_Grids2012) then
@@ -4119,7 +4126,7 @@ contains
             write(*,*) "Minimal IMF mass too low for this grid, reset to ", m_IMF_inf_BeGrids," !"
             m_IMF_inf = m_IMF_inf_BeGrids
           endif
-        case(7)
+        case(8)
           write(*,*) 'What do you want for maximal IMF mass ?'
           read(*,*) m_IMF_sup
           if (grid == "Grids2012" .and. m_IMF_sup > m_IMF_sup_Grids2012) then
@@ -4130,7 +4137,7 @@ contains
             write(*,*) "Maximal IMF mass too high for this grid, reset to ", m_IMF_sup_BeGrids," !"
              m_IMF_sup = m_IMF_sup_BeGrids
           endif
-        case(8)
+        case(9)
           Temp_Var_real=-2.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'Value for the Dirac metallicity distribution :'
@@ -4140,7 +4147,7 @@ contains
             endif
           enddo
           fixed_metallicity=Temp_Var_real
-        case(9)
+        case(10)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. &
             Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
@@ -4157,7 +4164,7 @@ contains
             endif
           enddo
           ivdist=Temp_Var_Int
-        case(10)
+        case(11)
           Temp_Var_real=2.d0
           do while (Temp_Var_real > 1.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'Value for the Dirac velocity distribution :'
@@ -4167,7 +4174,7 @@ contains
             endif
           enddo
           om_ivdist=Temp_Var_real
-        case(11)
+        case(12)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1 .and. Temp_Var_Int /=2 .and. &
             Temp_Var_Int /= 3 .and. Temp_Var_Int /= 4)
@@ -4184,7 +4191,7 @@ contains
             endif
           enddo
           iangle=Temp_Var_Int
-        case(12)
+        case(13)
           Temp_Var_real=100.d0
           do while (Temp_Var_real > 90.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'Angle of view of the Dirac distribution:'
@@ -4194,7 +4201,7 @@ contains
             endif
           enddo
           Fixed_AoV_latitude=Temp_Var_real
-        case(13)
+        case(14)
           Temp_Var_real=2.d0
           do while (Temp_Var_real > 1.d0 .or. Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for binary probability ?'
@@ -4204,7 +4211,7 @@ contains
             endif
           enddo
           binary_prob=Temp_Var_real
-        case(14)
+        case(15)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Old calibration (grids 2011 paper I) (1) or Worthey & Lee, ApJS 193 1 (2011) (2) ?'
@@ -4214,7 +4221,7 @@ contains
             endif
           enddo
           Colour_Calibration_mode=Temp_Var_Int
-        case(15)
+        case(16)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Add noise ? (1) yes (0) no.'
@@ -4224,7 +4231,7 @@ contains
             endif
           enddo
           inoise=Temp_Var_Int
-        case(16)
+        case(17)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma M_V ?'
@@ -4234,7 +4241,7 @@ contains
             endif
           enddo
           sigma_mv=Temp_Var_real
-        case(17)
+        case(18)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma B-V'
@@ -4244,7 +4251,7 @@ contains
             endif
           enddo
           sigma_bv=Temp_Var_real
-        case(18)
+        case(19)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Gravity Darkening Correction ? (1) von Zeipel 1924 (2) Espinosa-Lara & Rieutord 2011.'
@@ -4254,7 +4261,7 @@ contains
             endif
           enddo
           grav_dark = Temp_Var_Int
-        case(19)
+        case(20)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Limb Darkening Correction ? (1) yes (0) no.'
@@ -5260,7 +5267,8 @@ module InterpolationLoop
   ! Main module, contains the loop for interpolating models
   ! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
-  use VariousParameters, only:Current_Number,SN_Number,Small_Number,Cepheid_Number,FastRot_Number,Cluster_mass,Compute
+  use VariousParameters, only:Current_Number,SN_Number,Small_Number,Cepheid_Number,FastRot_Number,Cluster_mass,&
+      Target_cluster_mass,Cluster_initial_mass,Compute
 
   implicit none
 
@@ -5365,6 +5373,16 @@ contains
             ! Perform the interpolation
             call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
                                         omega_factor,Interpolated_Model)
+            
+            if (Comp_Mode == 1) then
+              ! Compute the stellar mass of the cluster at birth (we add all stars, including dead ones.)
+              Cluster_initial_mass = Cluster_initial_mass + Star_mass
+              ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
+              if (Target_cluster_mass > 1.d-15 .and. Cluster_initial_mass > Target_cluster_mass) then
+                write(*,*) 'The cluster has reached an initial mass of :', Cluster_initial_mass
+                exit
+              endif
+            endif
             call Check_MassRange(age_log,Interpolated_Model,mass_in_mass_range,near_the_end)
             ! Near the maximal mass, try to find the maximal mass with a better accuracy.
             if (Comp_Mode == 2 .and. Current_Number > 1 .and. .not. Compute) then
@@ -5376,6 +5394,16 @@ contains
               endif
             endif
           enddo
+          
+          ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
+          if (Comp_Mode == 1) then
+            if (Target_cluster_mass > 1.d-15 .and. Cluster_initial_mass > Target_cluster_mass) then
+              ! The latest star is not accounted for, so we reset the line number.
+              Current_Number = Current_Number - 1
+              exit
+            endif
+          endif
+
           ! In isochrone mode, it should happen that Compute is set to .false. in Check_MassRange. We have to exit the loop in
           ! that case.
           if (.not. Compute .and. Comp_Mode == 2) then
@@ -5419,7 +5447,7 @@ contains
               Compute = .false.
             endif
           else
-            if (Current_Number == star_number) then
+            if (Current_Number == star_number .and. Target_cluster_mass < 1.d-15) then
               Compute = .false.
             endif
           endif
@@ -5832,7 +5860,7 @@ module Configuration_File
 
   use VariousParameters, only: grid,star_number,i_metallicity,ivdist,iangle,inoise,IMF_type,Fixed_AoV_latitude, &
     m_IMF_inf,m_IMF_sup,fixed_metallicity,om_ivdist,binary_prob,sigma_mv,sigma_bv, &
-    Colour_Calibration_mode, limb_dark,grav_dark,PMS,table_format
+    Colour_Calibration_mode, limb_dark,grav_dark,PMS,table_format,Target_cluster_mass
   use Population_Mode, only: Pop_Mass_Beam_Number,Pop_Omega_Beam_Number,N_Time_step
 
   implicit none
@@ -5905,6 +5933,10 @@ contains
     if (ierror /= 0) then
       star_number = 1000
     endif
+    read(Unit_Config_File,'(26x,d9.3)') Target_cluster_mass
+    if (ierror /= 0) then
+      Target_cluster_mass = 0.d0
+    endif
     read(Unit_Config_File,'(28x,i1)',iostat=ierror) i_metallicity
     if (ierror /= 0) then
       i_metallicity = 0
@@ -5953,7 +5985,7 @@ contains
     if (ierror /= 0) then
       sigma_bv = 0.0025d0
     endif
-    read(Unit_Config_File,'(22x,f7.2)',iostat=ierror) binary_prob
+    read(Unit_Config_File,'(21x,f7.2)',iostat=ierror) binary_prob
     if (ierror /= 0) then
       binary_prob = 0.d0
     endif
@@ -6014,6 +6046,7 @@ contains
     write(Unit_Config_File,'(a,2x,i1)') 'Table format: ',table_format
     write(Unit_Config_File,'(a,2x,l1)') 'PMS:  ',PMS
     write(Unit_Config_File,'(a,2x,i9)') 'Star Number: ',star_number
+    write(Unit_Config_File,'(a,2x,d9.3)') 'Targeted cluster mass: ',Target_cluster_mass
     write(Unit_Config_File,'(a,2x,i1)') 'Metallicity distribution: ',i_metallicity
     write(Unit_Config_File,'(a,2x,f6.4)') 'Metallicity: ', fixed_metallicity
     write(Unit_Config_File,'(a,2x,i1)') 'IMF_type: ', IMF_type

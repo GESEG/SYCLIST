@@ -71,7 +71,9 @@ module VariousParameters
   real(kind=8),public,save::sigma_mv=0.150d0, sigma_bv=0.10d0   ! standard deviation in MV et B-V
                                                                 ! current tables.
   real(kind=8),public,save::age_log                             ! wanted log(age).
-  real(kind=8),public,save::Cluster_mass                        ! Total cluster mass
+  real(kind=8),public,save::Cluster_mass                        ! Total cluster mass at the current age
+  real(kind=8),public,save::Target_cluster_mass = 0.d0          ! Wanted Initial total cluster mass (solar masses)
+  real(kind=8),public,save::Cluster_initial_mass = 0.d0         ! Initial total cluster mass (solar masses)
   real(kind=8),dimension(:,:,:),public,pointer,save::omega_List=>null() ! List of the rotation velocities.
   real(kind=8),dimension(:,:),public,pointer,save::mass_List=>null() ! List of the masses.
   real(kind=8),dimension(:),public,pointer,save::Z_List=>null() ! List of the metallicities.
