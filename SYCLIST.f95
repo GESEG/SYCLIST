@@ -1361,7 +1361,7 @@ contains
                                                     + 0.012120d0*Model%Additional_Data_Line(i_VI)**3.d0
     Model%Additional_Data_Line(i_GrpV) =  0.01868d0 - 0.902800d0*Model%Additional_Data_Line(i_VI) &
                                                     - 0.005321d0*Model%Additional_Data_Line(i_VI)**2.d0 &
-                                                    - 0.004186d0*Model%Additional_Data_Line(i_VI)**3.d0 &
+                                                    - 0.004186d0*Model%Additional_Data_Line(i_VI)**3.d0
     if (Model%Additional_Data_Line(i_VI) >= -0.4d0 .and. Model%Additional_Data_Line(i_VI) <= 5.d0) then
         Model%Additional_Data_Line(i_Gflag) = 0.d0
     else
@@ -5452,6 +5452,7 @@ contains
             if (Print_Binary == 1 .and. CurrentTime_Model(Current_Number)%Is_a_Binary == 1) then
                 Current_Number = Current_Number + 1
                 CurrentTime_Model(Current_Number) = CurrentSecondary
+                Cluster_mass = Cluster_mass + CurrentTime_Model(Current_Number)%mass_ini
             endif
           else
             CurrentTime_Model(Current_Number)%Is_a_Binary = 0
