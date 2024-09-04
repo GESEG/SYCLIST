@@ -2,7 +2,7 @@
 SRCDIR = .
 EXEC = Syclist.e
 
-FFLAGS = -frecursive# -fcheck=all
+FFLAGS = -frecursive #-fcheck=all
 LIBS =  -lm
 
 ##############

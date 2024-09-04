@@ -3999,7 +3999,8 @@ contains
     use VariousParameters, only:grid,star_number,m_IMF_inf,m_IMF_sup,m_IMF_inf_Grids2012, &
       m_IMF_sup_Grids2012,m_IMF_inf_BeGrids,m_IMF_sup_BeGrids,ivdist,om_ivdist,iangle, &
       Fixed_AoV_latitude,binary_prob,inoise,IMF_type,sigma_mv,sigma_bv,fixed_metallicity, &
-      Colour_Calibration_mode,grav_dark,limb_dark,PMS,table_format,Target_cluster_mass
+      Colour_Calibration_mode,grav_dark,limb_dark,PMS,table_format,Target_cluster_mass, &
+      Print_Binary
 
     implicit none
 
@@ -4029,12 +4030,13 @@ contains
       write(*,'(a,i5)') '12. angle of view distribution               ',iangle
       write(*,'(a,f5.2)') '13. special angle of view (iangle=3)         ',Fixed_AoV_latitude
       write(*,'(a,f5.2)') '14. probability of binarity                  ',binary_prob
-      write(*,'(a,i5)') '15. Colour - Teff calibration                ',Colour_Calibration_mode
-      write(*,'(a,i5)') '16. noise                                    ',inoise
-      write(*,'(a,f5.3)') '17. sigma in M_V                             ',sigma_mv
-      write(*,'(a,f5.3)') '18. sigma in B-V                             ',sigma_bv
-      write(*,'(a,i5)') '19. Gravity Darkening                        ',grav_dark
-      write(*,'(a,i5)') '20. Limb Darkening                           ',limb_dark
+      write(*,'(a,i1)') '15. printing of secondary data                   ',Print_Binary
+      write(*,'(a,i5)') '16. Colour - Teff calibration                ',Colour_Calibration_mode
+      write(*,'(a,i5)') '17. noise                                    ',inoise
+      write(*,'(a,f5.3)') '18. sigma in M_V                             ',sigma_mv
+      write(*,'(a,f5.3)') '19. sigma in B-V                             ',sigma_bv
+      write(*,'(a,i5)') '20. Gravity Darkening                        ',grav_dark
+      write(*,'(a,i5)') '21. Limb Darkening                           ',limb_dark
       read(*,*) Change_Param
       select case(Change_Param)
         case(0)
@@ -4213,6 +4215,18 @@ contains
           binary_prob=Temp_Var_real
         case(15)
           Temp_Var_Int=10
+          do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
+            write(*,*) 'Do you want secondary data to be printed (output data will have twice the usual column number)?'
+            write(*,*) '0. no'
+            write(*,*) '1. yes'
+            read(*,*) Temp_Var_Int
+            if (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1) then
+              write(*,*) 'Please enter 0 or 1.'
+            endif
+          enddo
+          Print_Binary=Temp_Var_Int
+        case(16)
+          Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Old calibration (grids 2011 paper I) (1) or Worthey & Lee, ApJS 193 1 (2011) (2) ?'
             read(*,*) Temp_Var_Int
@@ -4221,7 +4235,7 @@ contains
             endif
           enddo
           Colour_Calibration_mode=Temp_Var_Int
-        case(16)
+        case(17)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Add noise ? (1) yes (0) no.'
@@ -4231,7 +4245,7 @@ contains
             endif
           enddo
           inoise=Temp_Var_Int
-        case(17)
+        case(18)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma M_V ?'
@@ -4241,7 +4255,7 @@ contains
             endif
           enddo
           sigma_mv=Temp_Var_real
-        case(18)
+        case(19)
           Temp_Var_real=-1.d0
           do while (Temp_Var_real < 0.d0)
             write(*,*) 'What do you want for sigma B-V'
@@ -4251,7 +4265,7 @@ contains
             endif
           enddo
           sigma_bv=Temp_Var_real
-        case(19)
+        case(20)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
             write(*,*) 'Gravity Darkening Correction ? (1) von Zeipel 1924 (2) Espinosa-Lara & Rieutord 2011.'
@@ -4261,7 +4275,7 @@ contains
             endif
           enddo
           grav_dark = Temp_Var_Int
-        case(20)
+        case(21)
           Temp_Var_Int=10
           do while (Temp_Var_Int /= 0 .and. Temp_Var_Int /= 1)
             write(*,*) 'Limb Darkening Correction ? (1) yes (0) no.'
@@ -5297,10 +5311,11 @@ contains
     ! Driver for the interpolation loop
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    use DataStructure, only: type_DataStructure,Table_Line_Number,i_logTeff,i_logL,i_logTeff_corr,i_time
+    use DataStructure, only: type_DataStructure,Table_Line_Number,i_logTeff,i_logL,i_logTeff_corr,i_time, &
+      type_TimeModel
     use VariousParameters, only: IMF_type,table_format,Star_Z,Star_mass,Star_omega,Star_AoV, &
       ivdist,age_log,fixed_metallicity,om_ivdist,star_number,Comp_Mode,iangle,Z_Number, &
-      mass_Number_array,Fixed_AoV,All_Data_Array
+      mass_Number_array,Fixed_AoV,All_Data_Array,Print_Binary
     use LoopVariables, only:Z_Position,Z_factor,omega_Position,omega_factor,mass_Position,mass_factor, &
       Interpolated_Model,CurrentTime_Model
     use random, only: Z_RandomDraw,Mass_RandomDraw,Omega_RandomDraw,AoV_RandomDraw
@@ -5317,6 +5332,8 @@ contains
     integer:: i
 
     logical::mass_in_mass_range,near_the_end
+    
+    type(type_TimeModel):: CurrentSecondary
 
     ! Various initialisations
     call Initialise
@@ -5394,7 +5411,9 @@ contains
               endif
             endif
           enddo
-          
+         
+          write(*,*) 'Start loop, Current number = ', Current_Number
+ 
           ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
           if (Comp_Mode == 1) then
             if (Target_cluster_mass > 1.d-15 .and. Cluster_initial_mass > Target_cluster_mass) then
@@ -5425,11 +5444,15 @@ contains
 
           ! In cluster mode, we can account for the binaries
           if (Comp_Mode == 1) then
-            call Binary(CurrentTime_Model(Current_Number))
+            call Binary(CurrentTime_Model(Current_Number),CurrentSecondary)
             call Add_Noise(CurrentTime_Model(Current_Number))
             if (Is_a_Cepheid(CurrentTime_Model(Current_Number)%Data_Line(i_logL), &
                              CurrentTime_Model(Current_Number)%Data_Line(i_logTeff))) then
               Cepheid_Number = Cepheid_Number + 1
+            endif
+            if (Print_Binary == 1 .and. CurrentTime_Model(Current_Number)%Is_a_Binary == 1) then
+                Current_Number = Current_Number + 1
+                CurrentTime_Model(Current_Number) = CurrentSecondary
             endif
           else
             CurrentTime_Model(Current_Number)%Is_a_Binary = 0
@@ -5585,7 +5608,7 @@ contains
     select case (Comp_Mode)
       case (1)
         write(*,*) 'starnumber: ',star_number
-        allocate(CurrentTime_Model(star_number))
+        allocate(CurrentTime_Model(star_number+1))
         write(*,*) 'Cluster mode, log(age)=',age_log
         write(*,*)
         write(*,*) 'calculating the synthetic cluster'
@@ -5669,12 +5692,12 @@ contains
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  subroutine Binary(Time_Model)
+  subroutine Binary(Time_Model,Time_Binary)
     ! Determine if the star is a binary. In that case, compute the binary model, and sum the observed fluxes.
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: type_TimeModel,type_DataStructure,i_MBol,i_MV,i_UB,i_BV,i_logL
-    use VariousParameters, only: m_IMF_inf,age_log,Z_Number,mass_number_array
+    use VariousParameters, only: m_IMF_inf,age_log,Z_Number,mass_number_array,Print_Binary
     use random, only: Binary_RandomDraw,Binary_Mass_RandomDraw
     use interpolmod, only: All_Positions_and_factors,Make_InterpolatedModel,Make_TimeModel
     use Additional_Data, only: Compute_Additional
@@ -5684,7 +5707,7 @@ contains
     type(type_TimeModel), intent(inout):: Time_Model
 
     type(type_DataStructure):: Interpolated_Binary
-    type(type_TimeModel):: Time_Binary
+    type(type_TimeModel), intent(out):: Time_Binary
 
     integer:: Z_Position,Real_Z_Position,i
     integer, dimension(2)::mass_Position
@@ -5729,23 +5752,31 @@ contains
           call Make_TimeModel(Interpolated_Binary,age_log,Time_Binary)
           Time_Binary%Star_ID = 0
           Time_Binary%Angle_of_View = Time_Model%Angle_of_View
+          Time_Binary%Metallicity = Time_Model%Metallicity
+          Time_Binary%mass_ini = Mass_Binary
+          Time_Binary%Omega_Omcrit_ini = Omega_Binary
+          Time_Binary%Current_Time = Time_Model%Current_Time
+          Time_Binary%mass_ratio = 1.d0
+          Time_Binary%Is_a_Binary = 3
           call Compute_Additional(Time_Binary)
-          ! Add the flux of the binary to the primary :
-          M_B_Prim = Time_Model%Additional_Data_Line(i_BV) + Time_Model%Additional_Data_Line(i_MV)
-          M_B_Secon = Time_Binary%Additional_Data_Line(i_BV) + Time_Binary%Additional_Data_Line(i_MV)
-          M_U_Prim = Time_Model%Additional_Data_Line(i_UB) + M_B_Prim
-          M_U_Secon = Time_Binary%Additional_Data_Line(i_UB) + M_B_Secon
-          Time_Model%Additional_Data_Line(i_MBol) = Add_Flux(Time_Model%Additional_Data_Line(i_MBol), &
-            Time_Binary%Additional_Data_Line(i_MBol))
-          Time_Model%Additional_Data_Line(i_MV) = Add_Flux(Time_Model%Additional_Data_Line(i_MV), &
-            Time_Binary%Additional_Data_Line(i_MV))
-          M_B_Prim = Add_Flux(M_B_Prim,M_B_Secon)
-          M_U_Prim = Add_Flux(M_U_Prim,M_U_Secon)
-          Time_Model%Additional_Data_Line(i_BV) = M_B_Prim - Time_Model%Additional_Data_Line(i_MV)
-          Time_Model%Additional_Data_Line(i_UB) = M_U_Prim - M_B_Prim
-          ! With the current data, it is not possible to compute the composite B1V1 magnitude. Unchanged.
-          Time_Model%Data_Line(i_logL) = log10(10.d0**Time_Model%Data_Line(i_logL) + 10.d0**Time_Binary%Data_Line(i_logL))
-        ! It is difficult to define a composite TEff. Unchanged.
+          ! Add the flux of the binary to the primary (only in case the binary data are not printed) :
+          if (Print_Binary == 0) then
+            M_B_Prim = Time_Model%Additional_Data_Line(i_BV) + Time_Model%Additional_Data_Line(i_MV)
+            M_B_Secon = Time_Binary%Additional_Data_Line(i_BV) + Time_Binary%Additional_Data_Line(i_MV)
+            M_U_Prim = Time_Model%Additional_Data_Line(i_UB) + M_B_Prim
+            M_U_Secon = Time_Binary%Additional_Data_Line(i_UB) + M_B_Secon
+            Time_Model%Additional_Data_Line(i_MBol) = Add_Flux(Time_Model%Additional_Data_Line(i_MBol), &
+              Time_Binary%Additional_Data_Line(i_MBol))
+            Time_Model%Additional_Data_Line(i_MV) = Add_Flux(Time_Model%Additional_Data_Line(i_MV), &
+              Time_Binary%Additional_Data_Line(i_MV))
+            M_B_Prim = Add_Flux(M_B_Prim,M_B_Secon)
+            M_U_Prim = Add_Flux(M_U_Prim,M_U_Secon)
+            Time_Model%Additional_Data_Line(i_BV) = M_B_Prim - Time_Model%Additional_Data_Line(i_MV)
+            Time_Model%Additional_Data_Line(i_UB) = M_U_Prim - M_B_Prim
+            ! With the current data, it is not possible to compute the composite B1V1 magnitude. Unchanged.
+            Time_Model%Data_Line(i_logL) = log10(10.d0**Time_Model%Data_Line(i_logL) + 10.d0**Time_Binary%Data_Line(i_logL))
+          ! It is difficult to define a composite TEff. Unchanged.
+          endif
         endif
         Cluster_mass = Cluster_mass + Mass_Binary
       case default
@@ -5757,7 +5788,7 @@ contains
     if (Time_Model%Is_a_Binary == 1 .and. Too_Small) then
       Time_Model%Is_a_Binary = 2
     endif
-
+    
     return
 
   end subroutine Binary
@@ -5860,7 +5891,8 @@ module Configuration_File
 
   use VariousParameters, only: grid,star_number,i_metallicity,ivdist,iangle,inoise,IMF_type,Fixed_AoV_latitude, &
     m_IMF_inf,m_IMF_sup,fixed_metallicity,om_ivdist,binary_prob,sigma_mv,sigma_bv, &
-    Colour_Calibration_mode, limb_dark,grav_dark,PMS,table_format,Target_cluster_mass
+    Colour_Calibration_mode, limb_dark,grav_dark,PMS,table_format,Target_cluster_mass, &
+    Print_Binary
   use Population_Mode, only: Pop_Mass_Beam_Number,Pop_Omega_Beam_Number,N_Time_step
 
   implicit none
@@ -5989,6 +6021,10 @@ contains
     if (ierror /= 0) then
       binary_prob = 0.d0
     endif
+    read(Unit_Config_File,'(24x,i1)',iostat=ierror) Print_Binary
+    if (ierror /= 0) then
+      Print_Binary = 0
+    endif
     read(Unit_Config_File,'(39x,i5)',iostat=ierror) Pop_Mass_Beam_Number
     if (ierror /= 0) then
       Pop_Mass_Beam_Number = 2000
@@ -6060,6 +6096,7 @@ contains
     write(Unit_Config_File,'(a,2x,f7.4)') 'Variance in M_V: ',sigma_mv
     write(Unit_Config_File,'(a,2x,f7.4)') 'Variance in B-V: ',sigma_bv
     write(Unit_Config_File,'(a,2x,f7.2)') 'Binary probability: ',binary_prob
+    write(Unit_Config_File,'(a,2x,i1)') 'Printing binary data: ',Print_Binary
     write(Unit_Config_File,'(a,2x,i5)') 'Number of beam in mass (population): ',Pop_Mass_Beam_Number
     write(Unit_Config_File,'(a,2x,i5)') 'Number of beam in velocity (population): ',Pop_Omega_Beam_Number
     write(Unit_Config_File,'(a,2x,i5)') 'Colour - Teff calibration: ',Colour_Calibration_mode

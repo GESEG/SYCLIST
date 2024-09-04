@@ -50,6 +50,8 @@ module VariousParameters
                                                                 ! isochrone, (3) Population mode, (4) Single model
   integer,public,save::Colour_Calibration_mode = 2              ! Colour-Teff calibration (1) as in Paper I 2011,
                                                                 ! (2) Worthey & Lee, ApJS 193 1 (2011).
+  integer,public,save::Print_Binary = 0                         ! Printing of secondary data. If 1, print secondary data by doubling
+                                                                ! output column number (in cluster mode only)
 
   integer,pointer::mass_Number_array(:)                         ! Array containing the number of mass for each Z.
   integer,pointer::omega_Number_array(:,:)                      ! Array containg for each Z and mass the number
