@@ -1350,17 +1350,19 @@ contains
     Model%Additional_Data_Line(i_Mbol) = -2.5d0*Model%Additional_Data_Line(i_L) + 4.75d0
     Model%Additional_Data_Line(i_MV) = -2.5d0*Model%Additional_Data_Line(i_L)+4.75d0-Model%Additional_Data_Line(i_BC)
 
-    ! Computation of the Gaia colours according to the DR2 (Evans et al. 2018, arXiv 1804.09368). In case
-    ! the data are off the recommended values for V-I, we set the flag to 1:
-    Model%Additional_Data_Line(i_GV)   = -0.01746d0 + 0.008092d0*Model%Additional_Data_Line(i_VI) &
-                                                    - 0.281000d0*Model%Additional_Data_Line(i_VI)**2.d0 &
-                                                    + 0.036550d0*Model%Additional_Data_Line(i_VI)**3.d0
-    Model%Additional_Data_Line(i_GbpV) = -0.05204d0 + 0.483000d0*Model%Additional_Data_Line(i_VI) &
-                                                    - 0.200100d0*Model%Additional_Data_Line(i_VI)**2.d0 &
-                                                    + 0.02186*Model%Additional_Data_Line(i_VI)**3.d0
-    Model%Additional_Data_Line(i_GrpV) =  0.24280d0 - 0.867500d0*Model%Additional_Data_Line(i_VI) &
-                                                    - 0.028660d0*Model%Additional_Data_Line(i_VI)**2.d0
-    if (Model%Additional_Data_Line(i_VI) >= -0.3d0 .and. Model%Additional_Data_Line(i_VI) <= 2.7d0) then
+    ! Computation of the Gaia colours according to the eDR3 (Riello et al. 2021, 2021A&A...649A...3R).
+    ! In case the data are off the recommended values for V-I, we set the flag to 1:
+    Model%Additional_Data_Line(i_GV)   = -0.01597d0 + 0.02809d0*Model%Additional_Data_Line(i_VI) &
+                                                    - 0.24830d0*Model%Additional_Data_Line(i_VI)**2.d0 &
+                                                    + 0.036560d0*Model%Additional_Data_Line(i_VI)**3.d0 &
+                                                    - 0.002939d0*Model%Additional_Data_Line(i_VI)**4.d0
+    Model%Additional_Data_Line(i_GbpV) = -0.01430d0 + 0.356400d0*Model%Additional_Data_Line(i_VI) &
+                                                    - 0.133200d0*Model%Additional_Data_Line(i_VI)**2.d0 &
+                                                    + 0.012120d0*Model%Additional_Data_Line(i_VI)**3.d0
+    Model%Additional_Data_Line(i_GrpV) =  0.01868d0 - 0.902800d0*Model%Additional_Data_Line(i_VI) &
+                                                    - 0.005321d0*Model%Additional_Data_Line(i_VI)**2.d0 &
+                                                    - 0.004186d0*Model%Additional_Data_Line(i_VI)**3.d0 &
+    if (Model%Additional_Data_Line(i_VI) >= -0.4d0 .and. Model%Additional_Data_Line(i_VI) <= 5.d0) then
         Model%Additional_Data_Line(i_Gflag) = 0.d0
     else
         Model%Additional_Data_Line(i_Gflag) = 1.d0
@@ -5390,7 +5392,7 @@ contains
             ! Perform the interpolation
             call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
                                         omega_factor,Interpolated_Model)
-            
+
             if (Comp_Mode == 1) then
               ! Compute the stellar mass of the cluster at birth (we add all stars, including dead ones.)
               Cluster_initial_mass = Cluster_initial_mass + Star_mass
@@ -5411,9 +5413,6 @@ contains
               endif
             endif
           enddo
-         
-          write(*,*) 'Start loop, Current number = ', Current_Number
- 
           ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
           if (Comp_Mode == 1) then
             if (Target_cluster_mass > 1.d-15 .and. Cluster_initial_mass > Target_cluster_mass) then
