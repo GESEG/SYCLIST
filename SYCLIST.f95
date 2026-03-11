@@ -56,7 +56,7 @@ contains
 
     real(kind=8),intent(in):: x0
     integer,intent(in):: m
-    integer:: i=0,k,n
+    integer:: i,k,n
     real(kind=8), intent(in),dimension(m):: x
 
     ! si  k = indice(x0,x,m)  on aura   x0 compris entre x(k) et x(k+1)
@@ -1300,7 +1300,12 @@ module Color_and_Correction
 
   logical, save:: Already_Read = .false.
 
+  ! Data table read from DataColours.dat — declared at module level so it can be
+  ! initialised once by init_DataColours() before the OpenMP parallel region.
+  real(kind=8), dimension(nvk,nfe,ng,nind), save:: a_DataColours
+
   public:: Compute_ColorMagnitude_New
+  public:: init_DataColours
   private:: Empirical_CT
   private:: readtable
   private:: teffinterp
@@ -1309,6 +1314,21 @@ module Color_and_Correction
   private:: polint
 
 contains
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine init_DataColours()
+  ! Read the DataColours table once, before any parallel region.
+  ! Calling this from the main program alongside init_Huang, init_HG, etc.
+  ! ensures that the file is never opened by multiple threads simultaneously.
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    implicit none
+
+    call readtable(a_DataColours)
+    Already_Read = .true.
+
+  end subroutine init_DataColours
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   subroutine Compute_ColorMagnitude_New(Model)
@@ -1437,16 +1457,19 @@ contains
       bcefloor = (/0.2d0,0.1d0,0.07d0,0.05d0,0.05d0,0.07d0,0.10d0,0.2d0/)
     !                                       Make bolometric correction floor error depend on theta
 
-    real(kind=8), dimension(nvk,nfe,ng,nind), save:: a
+    real(kind=8), dimension(nvk,nfe,ng,nind):: a
 
     ! Set extrapolation flag to nominal value
     iflag = 0
 
-    ! load data table
+    ! Use the data table pre-loaded by init_DataColours().
+    ! The Already_Read guard is kept as a safety net in case the routine is
+    ! called without prior initialisation (e.g. in single-thread mode).
     if (.not. Already_Read) then
-      call readtable(a)
+      call readtable(a_DataColours)
       Already_Read = .true.
     endif
+    a = a_DataColours
 
     ! switch Teff to THETA
     theta = theta_init_value/teff
@@ -3410,6 +3433,7 @@ module random
   real(kind=8), private:: k1,k2,C0,C1,Phi_NN_Minf,Phi_NN_Msup,Phi1,Phi2
 
   public:: init_random
+  public:: init_random_thread
   public:: Omega_RandomDraw
   public:: Mass_RandomDraw
   public:: Init_Kroupa_IMF
@@ -3443,6 +3467,41 @@ contains
     return
 
   end subroutine init_random
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine init_random_thread(thread_id)
+    ! Per-thread seed initialisation for OpenMP parallel regions.
+    ! Must be called by each thread at the start of the parallel region.
+    !
+    ! With gfortran/ifort, each OpenMP thread has its own internal RNG state;
+    ! calling random_seed(put=...) from a thread sets only that thread's state.
+    ! Seeds are spaced by a large prime times the thread_id to ensure that
+    ! the sequences of different threads are statistically independent.
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    implicit none
+
+    integer, intent(in) :: thread_id
+
+    integer :: i, n, clock
+    integer, dimension(:), allocatable :: seed
+    ! Large prime used to space thread seeds far apart in seed space.
+    integer, parameter :: prime_offset = 179424673
+
+    call random_seed(size=n)
+    allocate(seed(n))
+
+    call system_clock(count=clock)
+
+    seed = clock + 37 * (/ (i - 1, i = 1, n) /) + prime_offset * thread_id
+    call random_seed(put=seed)
+
+    deallocate(seed)
+
+    return
+
+  end subroutine init_random_thread
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4099,9 +4158,16 @@ contains
             PMS = .false.
           endif
         case(4)
-          write(*,*) 'Number of stars in the synthetic cluster'
-          write(*,*) '(accounted for only if the initial mass of the cluster is set to 0.):'
-          read(*,*) star_number
+          Temp_Var_Int=0
+          do while (Temp_Var_Int < 1)
+            write(*,*) 'Number of stars in the synthetic cluster'
+            write(*,*) '(accounted for only if the initial mass of the cluster is set to 0.):'
+            read(*,*) Temp_Var_Int
+            if (Temp_Var_Int < 1) then
+              write(*,*) 'Should be larger than 0 !'
+            endif
+          enddo
+          star_number = Temp_Var_Int
         case(5)
           write(*,*) 'Wanted initial mass of the cluster (in solar masses) :'
           write(*,*) "The number of star will be adapted, don't change it anymore."
@@ -5215,12 +5281,16 @@ module CheckFunctions
 contains
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  subroutine Check_MassRange(age_log,Model,test,near_the_end)
-    ! Check if the current mass is in the accetped mass range.
+  subroutine Check_MassRange(age_log,Model,test,near_the_end,SN_inc,Small_inc,Cluster_mass_inc)
+    ! Check if the current mass is in the accepted mass range.
+    !
+    ! SN_inc, Small_inc, Cluster_mass_inc are output increments that the caller must add to the
+    ! corresponding accumulators. This avoids direct writes to shared module variables, which is
+    ! required for correct behaviour inside an OpenMP parallel region (REDUCTION or ATOMIC).
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: type_DataStructure,Table_Line_Number,i_time
-    use VariousParameters, only: m_IMF_inf,m_IMF_sup,SN_Number,Small_Number,Cluster_mass,Compute,Current_Number,Comp_Mode
+    use VariousParameters, only: m_IMF_inf,m_IMF_sup,Compute,Current_Number,Comp_Mode
 
     implicit none
 
@@ -5228,8 +5298,15 @@ contains
     type(type_DataStructure), intent(inout)::Model
 
     logical, intent(out)::test, near_the_end
+    integer, intent(out)::SN_inc, Small_inc          ! 1 if the counter must be incremented, 0 otherwise
+    real(kind=8), intent(out)::Cluster_mass_inc      ! Mass to add to Cluster_mass (0 if star is valid)
 
     real(kind=8)::log_agemax
+
+    ! Default: no increment needed
+    SN_inc           = 0
+    Small_inc        = 0
+    Cluster_mass_inc = 0.d0
 
     log_agemax = log10(Model%Data_Table(Table_Line_Number,i_time))
 
@@ -5244,8 +5321,8 @@ contains
     ! or if the current mass is larger than the maximum mass allowed by the IMF (this should not arrise).
     ! If this is not the case, increment the SN counter.
     if (age_log > log_agemax .or. Model%mass_ini > m_IMF_sup) then
-      SN_Number = SN_Number + 1
-      Cluster_mass = Cluster_mass + Model%mass_ini
+      SN_inc           = 1
+      Cluster_mass_inc = Model%mass_ini
       ! In isochrone mode, we need to exit the loop anyway.
       if (Comp_Mode /= 2) then
         test = .true.
@@ -5261,8 +5338,8 @@ contains
     ! Check if the current mass is smaller than the minimum mass allowed by the IMF (this should not arrise).
     ! If this is not the case, increment the small star counter.
     if (Model%mass_ini < m_IMF_inf) then
-      Small_Number = Small_Number+1
-      Cluster_mass = Cluster_mass + Model%mass_ini
+      Small_inc        = 1
+      Cluster_mass_inc = Model%mass_ini
       test = .true.
       return
     endif
@@ -5285,6 +5362,7 @@ module InterpolationLoop
 
   use VariousParameters, only:Current_Number,SN_Number,Small_Number,Cepheid_Number,FastRot_Number,Cluster_mass,&
       Target_cluster_mass,Cluster_initial_mass,Compute
+  use omp_lib
 
   implicit none
 
@@ -5315,12 +5393,11 @@ contains
 
     use DataStructure, only: type_DataStructure,Table_Line_Number,i_logTeff,i_logL,i_logTeff_corr,i_time, &
       type_TimeModel
-    use VariousParameters, only: IMF_type,table_format,Star_Z,Star_mass,Star_omega,Star_AoV, &
+    use VariousParameters, only: IMF_type,table_format, &
       ivdist,age_log,fixed_metallicity,om_ivdist,star_number,Comp_Mode,iangle,Z_Number, &
       mass_Number_array,Fixed_AoV,All_Data_Array,Print_Binary
-    use LoopVariables, only:Z_Position,Z_factor,omega_Position,omega_factor,mass_Position,mass_factor, &
-      Interpolated_Model,CurrentTime_Model
-    use random, only: Z_RandomDraw,Mass_RandomDraw,Omega_RandomDraw,AoV_RandomDraw
+    use LoopVariables, only: CurrentTime_Model
+    use random, only: Z_RandomDraw,Mass_RandomDraw,Omega_RandomDraw,AoV_RandomDraw,init_random_thread
     use interpolmod, only:All_Positions_and_factors,Make_InterpolatedModel,Make_TimeModel
     use InOut, only: InitialiseData,WriteResults
     use CheckFunctions, only:check_massrange
@@ -5334,8 +5411,40 @@ contains
     integer:: i
 
     logical::mass_in_mass_range,near_the_end
-    
+
     type(type_TimeModel):: CurrentSecondary
+
+    ! Per-star working variables — formerly global in VariousParameters / LoopVariables.
+    ! Declared locally here so that they can later be made PRIVATE in an OpenMP parallel region.
+    real(kind=8):: Star_Z       ! Current stellar metallicity
+    real(kind=8):: Star_mass    ! Current stellar mass
+    real(kind=8):: Star_omega   ! Current stellar velocity
+    real(kind=8):: Star_AoV     ! Current stellar angle of view
+    integer               :: Z_Position              ! Position in metallicity table
+    real(kind=8)          :: Z_factor                ! Interpolation factor in metallicity
+    integer, dimension(2) :: mass_Position           ! Position in mass table
+    real(kind=8), dimension(2) :: mass_factor        ! Interpolation factor in mass
+    integer,      dimension(2,2) :: omega_Position   ! Position in omega table
+    real(kind=8), dimension(2,2) :: omega_factor     ! Interpolation factor in omega
+    type(type_DataStructure)     :: Interpolated_Model ! Interpolated stellar model
+    real(kind=8)                 :: Binary_mass_out    ! Secondary mass returned by Binary()
+
+    ! Variables for the OpenMP parallel region (Comp_Mode == 1 only)
+    integer      :: thread_id                            ! OpenMP thread identity
+    integer      :: i_local, n_local                  ! Per-thread loop bounds (fixed-N case)
+    integer      :: my_slot, secondary_slot           ! Atomic-captured indices into CurrentTime_Model
+    real(kind=8) :: local_initial_mass                ! Per-thread initial mass accumulator (target-mass case)
+    real(kind=8) :: local_target_mass                 ! Per-thread mass budget (= Target_cluster_mass/N_threads)
+
+    ! Output increments from Check_MassRange (avoid direct writes to shared module variables)
+    integer      :: SN_inc, Small_inc
+    real(kind=8) :: Cluster_mass_inc
+
+    ! Number of OpenMP threads — queried before the parallel region so it is
+    ! available as a SHARED variable inside it (avoids relying on
+    ! omp_get_num_threads() which can return 1 on some runtimes when called
+    ! outside a worksharing construct).
+    integer      :: N_omp_threads
 
     ! Various initialisations
     call Initialise
@@ -5350,59 +5459,211 @@ contains
 
     select case (Comp_Mode)
 !--------------------------------------------------
-      ! Cluster and isochrone mode
-      case (1,2)
-        do while (Compute)
-          ! Initialisation of the mass range check
-          ! Setting mass_in_mass_range to true at the beginning of each loop.
-          mass_in_mass_range = .true.
-          ! Incrementation of the star identifier
-          Current_Number = Current_Number + 1
-          ! Initialisation of the angle of view, for them cases where the random draw is not performed.
-          Star_AoV = 0.d0
-          do while (mass_in_mass_range)
-            ! Drawing mass and omega. We loop untill we find a mass and a velocity authorised at the given age.
-            ! Here, we are also able to determine if the current star is too small or too big, and to count the
-            ! number of SN explosions occuring in the cluster.
-            select case (Comp_Mode)
-              case (1)
+      ! Cluster mode — parallelised with OpenMP
+      case (1)
+
+        ! Query thread count before entering the parallel region.
+        N_omp_threads = omp_get_max_threads()
+
+        !$OMP PARALLEL &
+        !$OMP   DEFAULT(SHARED) &
+        !$OMP   PRIVATE(Star_Z, Star_mass, Star_omega, Star_AoV, &
+        !$OMP           Z_Position, Z_factor, mass_Position, mass_factor, &
+        !$OMP           omega_Position, omega_factor, Interpolated_Model, &
+        !$OMP           Binary_mass_out, CurrentSecondary, &
+        !$OMP           mass_in_mass_range, near_the_end, &
+        !$OMP           thread_id, i_local, n_local, &
+        !$OMP           local_initial_mass, local_target_mass, &
+        !$OMP           my_slot, secondary_slot, &
+        !$OMP           SN_inc, Small_inc, Cluster_mass_inc) &
+        !$OMP   REDUCTION(+: Cluster_mass, Cluster_initial_mass, &
+        !$OMP               Cepheid_Number, SN_Number, Small_Number, FastRot_Number)
+
+          thread_id = omp_get_thread_num()
+          ! Initialise an independent RNG state for this thread.
+          call init_random_thread(thread_id)
+
+          if (Target_cluster_mass < 1.d-15) then
+
+            ! ------------------------------------------------------------------
+            ! Case A: fixed number of stars.
+            ! Thread t computes stars t, t+N, t+2N, ... distributed statically.
+            ! The remainder (star_number mod N_threads) is spread one per thread
+            ! among the first threads.
+            ! ------------------------------------------------------------------
+            n_local = star_number / N_omp_threads
+            if (thread_id < mod(star_number, N_omp_threads)) n_local = n_local + 1
+
+            do i_local = 1, n_local
+              mass_in_mass_range = .true.
+              Star_AoV = 0.d0
+              ! Inner loop: redraw until a valid (live) star is found.
+              do while (mass_in_mass_range)
                 call Z_RandomDraw(Star_Z)
-                call Mass_RandomDraw(IMF_Type,Star_mass)
-                call Omega_RandomDraw(ivdist,Star_mass,Star_omega)
-                ! Perform the angle of view draw if wanted.
-                if (iangle > 0) then
-                  call AoV_RandomDraw(Star_AoV)
-                endif
-              case (2)
-                Star_Z = fixed_metallicity
-                if (iso_initialise) then
-                  Star_mass = CurrentTime_Model(Current_Number-1)%mass_ini + dm_isochrone
-                else
-                  Star_mass = initial_mass_isochrone
-                  iso_initialise = .true.
-                endif
-                Star_omega = om_ivdist
-            end select
+                call Mass_RandomDraw(IMF_type, Star_mass)
+                call Omega_RandomDraw(ivdist, Star_mass, Star_omega)
+                if (iangle > 0) call AoV_RandomDraw(Star_AoV)
+                call Initialise_Position_and_factor(Z_Position, Z_factor, mass_Position, mass_factor, &
+                                                    omega_Position, omega_factor)
+                call All_Positions_and_factors(Star_Z, Z_Position, Z_factor, Star_mass, &
+                                               mass_Position(:), mass_factor(:), &
+                                               Star_omega, omega_Position(:,:), omega_factor(:,:))
+                call Make_InterpolatedModel(Z_Position, Z_factor, mass_Position, mass_factor, &
+                                            omega_Position, omega_factor, Interpolated_Model)
+                ! All draw attempts (dead stars included) count toward the initial cluster mass.
+                Cluster_initial_mass = Cluster_initial_mass + Star_mass
+                call Check_MassRange(age_log, Interpolated_Model, mass_in_mass_range, near_the_end, &
+                                     SN_inc, Small_inc, Cluster_mass_inc)
+                SN_Number    = SN_Number    + SN_inc
+                Small_Number = Small_Number + Small_inc
+                Cluster_mass = Cluster_mass + Cluster_mass_inc
+              enddo
 
-            call Initialise_Position_and_factor(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
-                                                omega_factor)
-            call All_Positions_and_factors(Star_Z,Z_Position,Z_factor,Star_mass,mass_Position(:),mass_factor(:), &
-                                           Star_omega,omega_Position(:,:),omega_factor(:,:))
+              ! Valid star found — claim a unique slot in CurrentTime_Model.
+              !$OMP ATOMIC CAPTURE
+              Current_Number = Current_Number + 1
+              my_slot = Current_Number
+              !$OMP END ATOMIC
 
-            ! Perform the interpolation
-            call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
-                                        omega_factor,Interpolated_Model)
+              Cluster_mass = Cluster_mass + Star_mass
+              call Make_TimeModel(Interpolated_Model, age_log, CurrentTime_Model(my_slot))
+              CurrentTime_Model(my_slot)%Star_ID       = my_slot
+              CurrentTime_Model(my_slot)%Angle_of_View = Star_AoV
+              call Compute_Additional(CurrentTime_Model(my_slot))
+              call Binary(CurrentTime_Model(my_slot), CurrentSecondary, Binary_mass_out)
+              Cluster_mass = Cluster_mass + Binary_mass_out
+              call Add_Noise(CurrentTime_Model(my_slot))
+              if (Is_a_Cepheid(CurrentTime_Model(my_slot)%Data_Line(i_logL), &
+                               CurrentTime_Model(my_slot)%Data_Line(i_logTeff))) then
+                Cepheid_Number = Cepheid_Number + 1
+              endif
+              if (Print_Binary == 1 .and. CurrentTime_Model(my_slot)%Is_a_Binary == 1) then
+                !$OMP ATOMIC CAPTURE
+                Current_Number = Current_Number + 1
+                secondary_slot = Current_Number
+                !$OMP END ATOMIC
+                CurrentTime_Model(secondary_slot) = CurrentSecondary
+                Cluster_mass = Cluster_mass + CurrentTime_Model(secondary_slot)%mass_ini
+              endif
+            enddo ! i_local
 
-            if (Comp_Mode == 1) then
-              ! Compute the stellar mass of the cluster at birth (we add all stars, including dead ones.)
-              Cluster_initial_mass = Cluster_initial_mass + Star_mass
-              ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
-              if (Target_cluster_mass > 1.d-15 .and. Cluster_initial_mass > Target_cluster_mass) then
-                write(*,*) 'The cluster has reached an initial mass of :', Cluster_initial_mass
+          else
+
+            ! ------------------------------------------------------------------
+            ! Case B: target cluster mass.
+            ! Each thread accumulates stars until it has contributed
+            ! Target_cluster_mass / N_threads of initial mass.
+            ! A slight overshoot is acceptable (stated requirement).
+            ! ------------------------------------------------------------------
+            local_target_mass  = Target_cluster_mass / dble(N_omp_threads)
+            local_initial_mass = 0.d0
+
+            do while (local_initial_mass < local_target_mass)
+              mass_in_mass_range = .true.
+              Star_AoV = 0.d0
+              ! Inner loop: redraw until a valid star is found or budget is exceeded.
+              do while (mass_in_mass_range)
+                call Z_RandomDraw(Star_Z)
+                call Mass_RandomDraw(IMF_type, Star_mass)
+                call Omega_RandomDraw(ivdist, Star_mass, Star_omega)
+                if (iangle > 0) call AoV_RandomDraw(Star_AoV)
+                call Initialise_Position_and_factor(Z_Position, Z_factor, mass_Position, mass_factor, &
+                                                    omega_Position, omega_factor)
+                call All_Positions_and_factors(Star_Z, Z_Position, Z_factor, Star_mass, &
+                                               mass_Position(:), mass_factor(:), &
+                                               Star_omega, omega_Position(:,:), omega_factor(:,:))
+                call Make_InterpolatedModel(Z_Position, Z_factor, mass_Position, mass_factor, &
+                                            omega_Position, omega_factor, Interpolated_Model)
+                local_initial_mass   = local_initial_mass   + Star_mass
+                Cluster_initial_mass = Cluster_initial_mass + Star_mass
+                ! Budget exhausted mid-inner-loop: exit without validating this draw.
+                if (local_initial_mass >= local_target_mass) exit
+                call Check_MassRange(age_log, Interpolated_Model, mass_in_mass_range, near_the_end, &
+                                     SN_inc, Small_inc, Cluster_mass_inc)
+                SN_Number    = SN_Number    + SN_inc
+                Small_Number = Small_Number + Small_inc
+                Cluster_mass = Cluster_mass + Cluster_mass_inc
+              enddo
+
+              ! Budget reached: report and exit the outer loop.
+              if (local_initial_mass >= local_target_mass) then
+                !$OMP CRITICAL
+                write(*,'(a,i3,a,f14.2,a)') 'Thread ', thread_id, &
+                  ' has reached its mass budget (Minit = ', local_initial_mass, ' Msun).'
+                !$OMP END CRITICAL
                 exit
               endif
+
+              ! Valid star found — claim a unique slot.
+              !$OMP ATOMIC CAPTURE
+              Current_Number = Current_Number + 1
+              my_slot = Current_Number
+              !$OMP END ATOMIC
+
+              ! Safety guard against array overflow.
+              if (my_slot > 2*star_number) then
+                !$OMP ATOMIC
+                Current_Number = Current_Number - 1
+                !$OMP END ATOMIC
+                exit
+              endif
+
+              Cluster_mass = Cluster_mass + Star_mass
+              call Make_TimeModel(Interpolated_Model, age_log, CurrentTime_Model(my_slot))
+              CurrentTime_Model(my_slot)%Star_ID       = my_slot
+              CurrentTime_Model(my_slot)%Angle_of_View = Star_AoV
+              call Compute_Additional(CurrentTime_Model(my_slot))
+              call Binary(CurrentTime_Model(my_slot), CurrentSecondary, Binary_mass_out)
+              Cluster_mass = Cluster_mass + Binary_mass_out
+              call Add_Noise(CurrentTime_Model(my_slot))
+              if (Is_a_Cepheid(CurrentTime_Model(my_slot)%Data_Line(i_logL), &
+                               CurrentTime_Model(my_slot)%Data_Line(i_logTeff))) then
+                Cepheid_Number = Cepheid_Number + 1
+              endif
+              if (Print_Binary == 1 .and. CurrentTime_Model(my_slot)%Is_a_Binary == 1) then
+                !$OMP ATOMIC CAPTURE
+                Current_Number = Current_Number + 1
+                secondary_slot = Current_Number
+                !$OMP END ATOMIC
+                CurrentTime_Model(secondary_slot) = CurrentSecondary
+                Cluster_mass = Cluster_mass + CurrentTime_Model(secondary_slot)%mass_ini
+              endif
+            enddo ! do while budget
+
+          endif ! target_cluster_mass
+
+        !$OMP END PARALLEL
+
+!--------------------------------------------------
+      ! Isochrone mode — serial (unchanged logic, updated Check_MassRange call)
+      case (2)
+        do while (Compute)
+          mass_in_mass_range = .true.
+          Current_Number = Current_Number + 1
+          Star_AoV = 0.d0
+          do while (mass_in_mass_range)
+            Star_Z = fixed_metallicity
+            if (iso_initialise) then
+              Star_mass = CurrentTime_Model(Current_Number-1)%mass_ini + dm_isochrone
+            else
+              Star_mass = initial_mass_isochrone
+              iso_initialise = .true.
             endif
-            call Check_MassRange(age_log,Interpolated_Model,mass_in_mass_range,near_the_end)
+            Star_omega = om_ivdist
+
+            call Initialise_Position_and_factor(Z_Position, Z_factor, mass_Position, mass_factor, &
+                                                omega_Position, omega_factor)
+            call All_Positions_and_factors(Star_Z, Z_Position, Z_factor, Star_mass, &
+                                           mass_Position(:), mass_factor(:), &
+                                           Star_omega, omega_Position(:,:), omega_factor(:,:))
+            call Make_InterpolatedModel(Z_Position, Z_factor, mass_Position, mass_factor, &
+                                        omega_Position, omega_factor, Interpolated_Model)
+
+            call Check_MassRange(age_log, Interpolated_Model, mass_in_mass_range, near_the_end, &
+                                 SN_inc, Small_inc, Cluster_mass_inc)
+            SN_Number    = SN_Number    + SN_inc
+            Small_Number = Small_Number + Small_inc
+            Cluster_mass = Cluster_mass + Cluster_mass_inc
             ! Near the maximal mass, try to find the maximal mass with a better accuracy.
             if (Comp_Mode == 2 .and. Current_Number > 1 .and. .not. Compute) then
               if (abs(CurrentTime_Model(Current_Number-1)%mass_ini - Interpolated_Model%mass_ini) > 1.d-4) then
@@ -5413,66 +5674,26 @@ contains
               endif
             endif
           enddo
-          ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
-          if (Comp_Mode == 1) then
-            if (Target_cluster_mass > 1.d-15 .and. Cluster_initial_mass > Target_cluster_mass) then
-              ! The latest star is not accounted for, so we reset the line number.
-              Current_Number = Current_Number - 1
-              exit
-            endif
-          endif
 
-          ! In isochrone mode, it should happen that Compute is set to .false. in Check_MassRange. We have to exit the loop in
-          ! that case.
-          if (.not. Compute .and. Comp_Mode == 2) then
+          ! In isochrone mode, it should happen that Compute is set to .false. in Check_MassRange.
+          if (.not. Compute) then
             Current_Number = Current_Number - 1
             exit
           endif
 
-          ! Total mass in the cluster
           Cluster_mass = Cluster_mass + Star_mass
-          ! Once we have the model interpolated in mass and velocity, we extract and interpolate the data
-          ! at the current age of the cluster.
-          call Make_TimeModel(Interpolated_Model,age_log,CurrentTime_Model(Current_Number))
-          ! Star_id is used to sort the stars by mass at the end of the process.
-          CurrentTime_Model(Current_Number)%Star_ID = Current_Number
-          ! Attribution of the angle of view
+          call Make_TimeModel(Interpolated_Model, age_log, CurrentTime_Model(Current_Number))
+          CurrentTime_Model(Current_Number)%Star_ID       = Current_Number
           CurrentTime_Model(Current_Number)%Angle_of_View = Star_AoV
-          ! Computation of the additional quantities.
           call Compute_Additional(CurrentTime_Model(Current_Number))
+          CurrentTime_Model(Current_Number)%Is_a_Binary = 0
 
-          ! In cluster mode, we can account for the binaries
-          if (Comp_Mode == 1) then
-            call Binary(CurrentTime_Model(Current_Number),CurrentSecondary)
-            call Add_Noise(CurrentTime_Model(Current_Number))
-            if (Is_a_Cepheid(CurrentTime_Model(Current_Number)%Data_Line(i_logL), &
-                             CurrentTime_Model(Current_Number)%Data_Line(i_logTeff))) then
-              Cepheid_Number = Cepheid_Number + 1
-            endif
-            if (Print_Binary == 1 .and. CurrentTime_Model(Current_Number)%Is_a_Binary == 1) then
-                Current_Number = Current_Number + 1
-                CurrentTime_Model(Current_Number) = CurrentSecondary
-                Cluster_mass = Cluster_mass + CurrentTime_Model(Current_Number)%mass_ini
-            endif
-          else
-            CurrentTime_Model(Current_Number)%Is_a_Binary = 0
-          endif
+          if (Current_Number > 1) &
+            call set_dm(CurrentTime_Model(Current_Number), CurrentTime_Model(Current_Number-1), near_the_end)
 
-          ! In isochrone mode, check that the distance between two points is not too big. If necessary, the mass step is divided.
-          if (Comp_Mode == 2 .and. Current_Number > 1) then
-            call set_dm(CurrentTime_Model(Current_Number),CurrentTime_Model(Current_Number-1),near_the_end)
-          endif
-
-          ! In isochrone mode, check that we do not exceed the maximum memory space allocated.
-          if (Comp_Mode == 2) then
-            if (Current_Number .ge. Max_star_number_isomode) then
-              write(*,*) 'Maximum number of stars reached. Exit.'
-              Compute = .false.
-            endif
-          else
-            if (Current_Number == star_number .and. Target_cluster_mass < 1.d-15) then
-              Compute = .false.
-            endif
+          if (Current_Number .ge. Max_star_number_isomode) then
+            write(*,*) 'Maximum number of stars reached. Exit.'
+            Compute = .false.
           endif
         enddo
 !--------------------------------------------------
@@ -5608,7 +5829,7 @@ contains
     select case (Comp_Mode)
       case (1)
         write(*,*) 'starnumber: ',star_number
-        allocate(CurrentTime_Model(star_number+1))
+        allocate(CurrentTime_Model(2*star_number))
         write(*,*) 'Cluster mode, log(age)=',age_log
         write(*,*)
         write(*,*) 'calculating the synthetic cluster'
@@ -5692,8 +5913,10 @@ contains
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  subroutine Binary(Time_Model,Time_Binary)
+  subroutine Binary(Time_Model,Time_Binary,Binary_mass_out)
     ! Determine if the star is a binary. In that case, compute the binary model, and sum the observed fluxes.
+    ! Binary_mass_out returns the mass of the secondary (0 if none), so the caller can accumulate
+    ! it into Cluster_mass — keeping all writes to that variable in one place (needed for OpenMP).
     ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     use DataStructure, only: type_TimeModel,type_DataStructure,i_MBol,i_MV,i_UB,i_BV,i_logL
@@ -5708,6 +5931,7 @@ contains
 
     type(type_DataStructure):: Interpolated_Binary
     type(type_TimeModel), intent(out):: Time_Binary
+    real(kind=8), intent(out):: Binary_mass_out  ! Mass of the secondary (0 if no binary computed)
 
     integer:: Z_Position,Real_Z_Position,i
     integer, dimension(2)::mass_Position
@@ -5718,6 +5942,8 @@ contains
     real(kind=8), dimension(2,2):: omega_factor
 
     logical::Too_Small ! Used if the mass of the secondary is smaller than the lower mass of the IMF considered.
+
+    Binary_mass_out = 0.d0  ! Default: no secondary mass to add
 
     ! Determine if the star is a binary star.
     call Binary_RandomDraw(Time_Model%Is_a_Binary)
@@ -5778,7 +6004,7 @@ contains
           ! It is difficult to define a composite TEff. Unchanged.
           endif
         endif
-        Cluster_mass = Cluster_mass + Mass_Binary
+        Binary_mass_out = Mass_Binary  ! Returned to caller for accumulation into Cluster_mass
       case default
         write(*,*) 'Unexpected error...'
         stop
@@ -6126,6 +6352,7 @@ program PopStarII
   use random, only:init_random,Init_Kroupa_IMF
   use ReadData, only:init_Huang,init_HG,init_Correction,init_VcritOmega,init_SurfaceOmega, &
                      init_Correct_fact,init_angle_external
+  use Color_and_Correction, only: init_DataColours
   use InOut, only:Intro,AskChange,IsochroneMode
   use InterpolationLoop, only:MainLoop
   use Configuration_File, only:Config,Write_Config
@@ -6159,6 +6386,7 @@ program PopStarII
   call init_VcritOmega
   call init_SurfaceOmega
   call init_Correct_fact
+  call init_DataColours
 
   ! Introduction and choice of parameters
   call Intro
