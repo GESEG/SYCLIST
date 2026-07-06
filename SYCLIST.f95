@@ -3562,6 +3562,8 @@ contains
         mass = (Const_B*Random_Draw+Const_A)**(1.d0/(Salpeter_Slope+1.d0))
       case (2) ! Kroupa IMF
         mass = Get_Kroupa_IMF(Random_Draw)
+      case (3) ! Uniform IMF
+        mass = Get_Uniform_IMF(Random_Draw)
       case default
         write(*,*) 'Bad IMF type.'
         stop
@@ -3620,7 +3622,24 @@ contains
 
   end function Get_Kroupa_IMF
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  real(kind=8) function Get_Uniform_IMF(RD)
+    ! Random draw for the mass according to a uniform IMF
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    use VariousParameters, only:m_IMF_inf,m_IMF_sup
 
+
+    implicit none
+
+    real(kind=8), intent(in) :: RD
+
+    Get_Uniform_IMF = m_IMF_inf + RD * (m_IMF_sup - m_IMF_inf)
+
+    return
+  end function Get_Uniform_IMF
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   real(kind=8)  function Get_Parenthesis(Mlow,Mhigh,alpha)
@@ -3781,6 +3800,7 @@ module InOut
 
   private::ChangeParam
   private::ClusterParameters
+  private::GalaxyParameters
   public:: Intro
   public:: AskChange
   public:: IsochroneMode
@@ -3834,8 +3854,10 @@ contains
         write(*,'(a,f6.2,a,f6.2,a)') ' -Salpeter IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
       case (2)
         write(*,'(a,f6.2,a,f6.2,a)') ' -Kroupa IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
+      case (3)
+        write(*,'(a,f6.2,a,f6.2,a)') ' -Uniform IMF between ', m_IMF_inf,' and ',m_IMF_sup,' solar masses'
       case default
-        write(*,*) 'Bad choice of IMF tyle, should not occur'
+        write(*,*) 'Bad choice of IMF type, should not occur'
         stop
       end select
     write(*,*) 'Metallicity distribution :'
@@ -3958,11 +3980,12 @@ contains
 
     write(*,*)
     write(*,*) 'Which computation mode do you want :'
-    do while (Comp_Mode < 1 .or. Comp_Mode > 4)
+    do while (Comp_Mode < 1 .or. Comp_Mode > 5)
       write(*,*) '(1) Computation of a stellar cluster'
       write(*,*) '(2) Computation of isochrones'
       write(*,*) '(3) Computation of a stellar population as a function of time'
       write(*,*) '(4) Computation of a single stellar model'
+      write(*,*) '(5) Computation of a galaxy with constant star formation rate'
       read(5,*) Comp_Mode
       ! Starevol format not yet usable with population mode.
       if (Comp_Mode == 3 .and. table_format == 2) then
@@ -3983,6 +4006,8 @@ contains
         call BePopulationMode
       case (4)
         call SingleModelMode
+      case (5)
+        call GalaxyParameters
       case default
         write(*,*) 'Unexpected error...'
         stop
@@ -4109,13 +4134,14 @@ contains
           star_number = int(Target_cluster_mass)
         case(6)
           Temp_Var_Int=10
-          do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2)
+          do while (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. Temp_Var_Int /= 3)
             write(*,*) 'What do you want for the IMF?'
             write(*,*) '1. Salpeter IMF'
             write(*,*) '2. Kroupa IMF'
+            write(*,*) '3. Uniform IMF'
             read(5,*) Temp_Var_Int
-            if (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2) then
-              write(*,*) 'Please enter 1 or 2.'
+            if (Temp_Var_Int /= 1 .and. Temp_Var_Int /= 2 .and. Temp_Var_Int /= 3) then
+              write(*,*) 'Please enter 1, 2 or 3.'
             endif
           enddo
           IMF_type=Temp_Var_Int
@@ -4478,6 +4504,32 @@ contains
     return
 
   end subroutine ClusterParameters
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+  ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  subroutine GalaxyParameters
+    ! Main parameters of the simulation.
+    ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    use VariousParameters, only: log_max_lifetime_stars
+
+    implicit none
+
+
+    ! Maximum stars lifetime in galaxy.
+    write(*,*)
+    do while (log_max_lifetime_stars >= 14.d0)
+      write(*,*) 'Enter maximum stellar lifetime in galaxy in log (< 14):'
+      read(*,*) log_max_lifetime_stars
+      if(log_max_lifetime_stars >= 14.d0) then
+        write(*,*) 'Stellar lifetime too large, enter value < 14!'
+        write(*,'(a,f5.2)') 'Please enter a positive number'
+      endif
+    enddo
+
+    return
+
+  end subroutine GalaxyParameters
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4908,10 +4960,10 @@ contains
 
     ! Allocate the memory for the data to be printed.
     ! Here, we set a new integer for switching mode to cover the whole possible options:
-    ! so far, 4 computing modes and 2 formats. 1-4 are GENEC, 5-8 are starevol, 9-12 for GENEC with Cepheids
-    bigswitch = 4*(write_mode-1)+Comp_Mode
+    ! so far, 5 computing modes and 3 formats. 1-5 are GENEC, 6-10 are starevol, 11-15 for GENEC with Cepheids
+    bigswitch = 5*(write_mode-1)+Comp_Mode
     select case (bigswitch)
-      case (1) ! GENEC cluster
+      case (1,5) ! GENEC cluster or galaxy
         allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
         do i=1,Current_Number
           TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
@@ -4994,7 +5046,7 @@ contains
             (CurrentTime_Model(i)%Additional_Data_Line(j),j=i_VR,i_Gflag), &
             CurrentTime_Model(i)%Additional_Data_Line(i_BC)/)
         enddo
-      case (5) ! starevol cluster
+      case (6,10) ! starevol cluster or galaxy
         allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
         do i=1,Current_Number
           TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
@@ -5002,21 +5054,21 @@ contains
             CurrentTime_Model(i)%mass_ratio, &
             CurrentTime_Model(i)%Data_Line(2:)/)
         enddo
-      case (6) ! starevol isochrone
+      case (7) ! starevol isochrone
         allocate(TableToPrint(Current_Number,DataToPrint_Iso))
         do i=1,Current_Number
           TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
             CurrentTime_Model(i)%Omega_Omcrit_ini,(CurrentTime_Model(i)%Data_Line(j),j=2,DataToPrint_Single)/)
         enddo
-      case (7) ! starevol population
+      case (8) ! starevol population
         write(*,*) 'This should not occur. Check input parameters'
         stop
-      case (8) ! starevol single model
+      case (9) ! starevol single model
         allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
         do i=1,Table_Line_Number
           TableToPrint(i,:) = CurrentTime_Model(i)%Data_Line(:)
         enddo
-      case (9) ! GENEC with Cepheids cluster
+      case (11,15) ! GENEC with Cepheids cluster or galaxy
         allocate(TableToPrint(Current_Number,DataToPrint_Cluster))
         do i=1,Current_Number
           TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
@@ -5052,7 +5104,7 @@ contains
             CurrentTime_Model(i)%Data_Line(i_P_1O),CurrentTime_Model(i)%Data_Line(i_Pdot_P_1O), &
             CurrentTime_Model(i)%Data_Line(i_omi_omr_1O)/)
         enddo
-      case (10) ! GENEC with Cepheids isochrone
+      case (12) ! GENEC with Cepheids isochrone
         allocate(TableToPrint(Current_Number,DataToPrint_Iso))
         do i=1,Current_Number
           TableToPrint(i,:) = (/CurrentTime_Model(i)%mass_ini,CurrentTime_Model(i)%Metallicity, &
@@ -5083,12 +5135,12 @@ contains
             CurrentTime_Model(i)%Data_Line(i_P_1O),CurrentTime_Model(i)%Data_Line(i_Pdot_P_1O), &
             CurrentTime_Model(i)%Data_Line(i_omi_omr_1O)/)
         enddo
-      case (11) ! GENEC with Cepheids population
+      case (13) ! GENEC with Cepheids population
         allocate(TableToPrint(N_Time_step,size(Evolution_Data,2)+1))
         do i=1,N_Time_step
           TableToPrint(i,:) = (/time_step_array(i),Evolution_Data(i,:)/)
         enddo
-      case (12) ! GENEC with Cepheids single model
+      case (14) ! GENEC with Cepheids single model
         allocate(TableToPrint(Table_Line_Number,DataToPrint_Single))
         do i=1,Table_Line_Number
           if (iangle > 0) then
@@ -5133,6 +5185,9 @@ contains
           write(Output_FileName,'(a,f4.2,a,f6.4,a,f4.2,a)') 'P',CurrentTime_Model(1)%mass_ini,'z', &
             CurrentTime_Model(1)%Metallicity,'S',CurrentTime_Model(1)%Omega_Omcrit_ini,'.dat'
         endif
+      case (5)
+        write(Output_FileName,'(a,f6.4,a,f6.3,tl6,i2.2,4x,a)') 'Galaxy_z',CurrentTime_Model(1)%Metallicity,&
+          '.dat'
       case default
         write(*,*) 'Unexpected mode...'
         stop
@@ -5158,7 +5213,7 @@ contains
     endif
 
     select case (Comp_Mode)
-      case (1)
+      case (1,5)
         write(50,'(a)') 'WARNING: Note that in case of binary star, the colours and the Teff are NOT the composite&
                     & one, but only the primary ones !'
         write(50,'(a)') trim(Header_Cluster)
@@ -5294,6 +5349,7 @@ module InterpolationLoop
 
   real(kind=8),private,parameter::DiffmaxMV=2.0d-1,DiffmaxBV=1.0d-2,DiffmaxL=2.0d-2,DiffmaxTeff=2.0d-2
   real(kind=8),private,save::initial_mass_isochrone,dm_isochrone,dm_isochrone_ini,dm_isochrone_min
+  real(kind=8)::rand_draw
 
   logical,private,save::iso_initialise
   logical,private,save::Binary_Star                                  ! Used in the binary loop
@@ -5317,7 +5373,7 @@ contains
       type_TimeModel
     use VariousParameters, only: IMF_type,table_format,Star_Z,Star_mass,Star_omega,Star_AoV, &
       ivdist,age_log,fixed_metallicity,om_ivdist,star_number,Comp_Mode,iangle,Z_Number, &
-      mass_Number_array,Fixed_AoV,All_Data_Array,Print_Binary
+      mass_Number_array,Fixed_AoV,All_Data_Array,Print_Binary,log_max_lifetime_stars
     use LoopVariables, only:Z_Position,Z_factor,omega_Position,omega_factor,mass_Position,mass_factor, &
       Interpolated_Model,CurrentTime_Model
     use random, only: Z_RandomDraw,Mass_RandomDraw,Omega_RandomDraw,AoV_RandomDraw
@@ -5350,8 +5406,8 @@ contains
 
     select case (Comp_Mode)
 !--------------------------------------------------
-      ! Cluster and isochrone mode
-      case (1,2)
+      ! Cluster, isochrone and galaxy mode
+      case (1,2,5)
         do while (Compute)
           ! Initialisation of the mass range check
           ! Setting mass_in_mass_range to true at the beginning of each loop.
@@ -5361,11 +5417,22 @@ contains
           ! Initialisation of the angle of view, for them cases where the random draw is not performed.
           Star_AoV = 0.d0
           do while (mass_in_mass_range)
+            select case (Comp_Mode)
+            case (5)
+              ! if in galaxy mode with constant star formation rate, draw a new age for each star
+              ! and update age_log
+              call random_number(rand_draw)         ! rand_draw is uniform in [0,1]
+              age_log = log10(rand_draw * 10**log_max_lifetime_stars) ! use the longest lifetime of the stars
+              ! when randomly drawing age of the star. If drawn age higher than lifetime of the computed
+              ! star, considered as already dead. In this case new star WITH NEW AGE is computed (to avoid
+              ! forcing SYCLIST to loop until it is able to find a star of the initially drawn age, 
+              ! introducing a bias). log_max_lifetime_stars should be provided as input in galaxy mode.
+            end select
             ! Drawing mass and omega. We loop untill we find a mass and a velocity authorised at the given age.
             ! Here, we are also able to determine if the current star is too small or too big, and to count the
             ! number of SN explosions occuring in the cluster.
             select case (Comp_Mode)
-              case (1)
+              case (1,5)
                 call Z_RandomDraw(Star_Z)
                 call Mass_RandomDraw(IMF_Type,Star_mass)
                 call Omega_RandomDraw(ivdist,Star_mass,Star_omega)
@@ -5393,7 +5460,7 @@ contains
             call Make_InterpolatedModel(Z_Position,Z_factor,mass_Position,mass_factor,omega_Position, &
                                         omega_factor,Interpolated_Model)
 
-            if (Comp_Mode == 1) then
+            if (Comp_Mode == 1 .or. Comp_Mode == 5) then
               ! Compute the stellar mass of the cluster at birth (we add all stars, including dead ones.)
               Cluster_initial_mass = Cluster_initial_mass + Star_mass
               ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
@@ -5414,7 +5481,7 @@ contains
             endif
           enddo
           ! In case the birth mass of the cluster is bigger than the target mass, we stop the computation.
-          if (Comp_Mode == 1) then
+          if (Comp_Mode == 1 .or. Comp_Mode == 5) then
             if (Target_cluster_mass > 1.d-15 .and. Cluster_initial_mass > Target_cluster_mass) then
               ! The latest star is not accounted for, so we reset the line number.
               Current_Number = Current_Number - 1
@@ -5442,7 +5509,7 @@ contains
           call Compute_Additional(CurrentTime_Model(Current_Number))
 
           ! In cluster mode, we can account for the binaries
-          if (Comp_Mode == 1) then
+          if (Comp_Mode == 1 .or. Comp_Mode == 5) then
             call Binary(CurrentTime_Model(Current_Number),CurrentSecondary)
             call Add_Noise(CurrentTime_Model(Current_Number))
             if (Is_a_Cepheid(CurrentTime_Model(Current_Number)%Data_Line(i_logL), &
@@ -5635,6 +5702,12 @@ contains
         allocate(CurrentTime_Model(Table_Line_Number))
         write(*,*)
         write(*,*) 'calculating the stellar model'
+      case (5)
+        write(*,*) 'starnumber: ',star_number
+        allocate(CurrentTime_Model(star_number+1))
+        write(*,*) 'Galaxy mode'
+        write(*,*)
+        write(*,*) 'calculating the synthetic galaxy'
       case default
         write(*,*) 'Error in Initialise, should not arrise !'
         stop
