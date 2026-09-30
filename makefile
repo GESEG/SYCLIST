@@ -2,7 +2,7 @@
 SRCDIR = .
 EXEC = Syclist.e
 
-FFLAGS = -frecursive #-fcheck=all
+FFLAGS = -frecursive -fopenmp #-fcheck=all
 LIBS =  -lm
 
 ##############
@@ -13,17 +13,15 @@ COMPILER= gfortran
 # Compilation rules
 %.o: $(SRCDIR)/%.f95
 	@echo "F90: $(COMPILER) -c $(FFLAGS) $(<)"
-	@$(COMPILER) $(FFLAGS) -c $(SRCDIR)/$*.f90 -o $*.o
+	@$(COMPILER) $(FFLAGS) -c $(SRCDIR)/$*.f95 -o $*.o
 
 # Source files
-SOURCES_F90 = formats.f95 \
+SOURCES_F95 = formats.f95 \
 parameters.f95 \
 SYCLIST.f95
 
 # Objects lists
-SOURCES=$(SOURCES_F90:%.f90=%.o)
-
-OBJECTS=$(SOURCES)
+OBJECTS=$(SOURCES_F95:%.f95=%.o)
 
 # Compile and link the code
 evolData_new: $(OBJECTS)
