@@ -70,6 +70,7 @@ module VariousParameters
   real(kind=8),public,save::Star_omega                          ! Current stellar velocity
   real(kind=8),public,save::Star_AoV                            ! Current stellar angle of view
   real(kind=8),public,parameter::log_age_max=11.0d0             ! Maximal log(age) for cluster allowed with the
+  real(kind=8),public,save::log_max_lifetime_stars=14.0d0       ! Maximal stellar lifetime (galaxy mode)
   real(kind=8),public,save::sigma_mv=0.150d0, sigma_bv=0.10d0   ! standard deviation in MV et B-V
                                                                 ! current tables.
   real(kind=8),public,save::age_log                             ! wanted log(age).
