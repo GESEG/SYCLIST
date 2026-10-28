@@ -1,7 +1,8 @@
-
+*.o
 *.mod
 *.paf
 *.pyc
 .DS_Store
 *.fpe
+.openmp_mode
 Syclist.e
