@@ -5421,7 +5421,8 @@ module InterpolationLoop
 
   use VariousParameters, only:Current_Number,SN_Number,Small_Number,Cepheid_Number,FastRot_Number,Cluster_mass,&
       Target_cluster_mass,Cluster_initial_mass,Compute
-  use omp_lib
+  !$ use omp_lib
+  ! Don't remove the previous line : used by openmp when the -fopenmp flag is active.
 
   implicit none
 
@@ -5528,7 +5529,9 @@ contains
       case (1,5)
 
         ! Query thread count before entering the parallel region.
-        N_omp_threads = omp_get_max_threads()
+        N_omp_threads = 1
+        !$  N_omp_threads = omp_get_max_threads()
+        ! Do not remove the previous line : used by openmp when compiled with -fopenmp
 
         !$OMP PARALLEL &
         !$OMP   DEFAULT(SHARED) &
@@ -5545,7 +5548,10 @@ contains
         !$OMP   REDUCTION(+: Cluster_mass, Cluster_initial_mass, &
         !$OMP               Cepheid_Number, SN_Number, Small_Number, FastRot_Number)
 
-          thread_id = omp_get_thread_num()
+          thread_id = 0
+          !$ thread_id = omp_get_thread_num()
+          ! Do not remove the previous line : used by openmp when compiled with -fopenmp
+
           ! Initialise an independent RNG state for this thread.
           call init_random_thread(thread_id)
 
